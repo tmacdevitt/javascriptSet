@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<canvas id = "ctx" width="640" height="480" style="border:1px solid #000000;"></canvas>
+
+<script>
+
+   var mouse = {
+   	x:undefined,
+   	y:undefined
+   	}
+	window.addEventListener("click", function(event) {
+    	mouse.x = event.x,        
+        mouse.y = event.y
+    	console.log(mouse);    
+        });
+ 
+
+// creating a deck of cards based on these four different characteristics or suits.
+
+//LoadImages
+
+createDeck = function () {
+
+var symbol = [ "diamond", "squiggle", "oval"];
+var color = [ "red", "green", "purple"];
+var shading = [ "solid", "striped", "open"];
+var quantity = [ 1, 2, 3];
+
+// needed for each of the loops.  Each for loop is like a power multiplier  in this case 3 to the 4th power or 81 loops
+// Leaving these in and commented out as I will be porting this to other scripting languages.
+//var i = 0;  For the symbols on the card
+//var j = 0;  For the color of the symbols on the card
+//var k = 0;  For the shading of the symbols on the card
+//var l = 0;  For the quantity of symbols on the card
+
+//  Creating the deck <Start> ------------------------------------------------------------
+// deck array
+var deck = [];
+var m = 0;  
+
+//  looping structure to create the deck of cards
+for (let i = 0; i < symbol.length; i++) {
+    for (let j = 0; j < color.length; j++) { 
+    	for (let k = 0; k < shading.length; k++) {
+        	for (let l = 0; l < quantity.length; l++) {
+        		deck[m] = {symbol: symbol[i], color:color[j], shading: shading[k], quantity: quantity[l], cardID : m+1}; 
+				
+				// DEBUG output to make sure this works
+				//console.log((m+1) + " " + symbol[i] + " and " + color[j] + " and " + shading[k] + " and " + quantity[l]);
+				//console.log((m+1) + " " + deck[m].symbol + ", "+ deck[m].color + ", "+ deck[m].shading + ", "+ deck[m].quantity);
+				m++;
+			}
+		}
+	}
+}
+
+return deck;
+}
+/**
+ * Copies an array. shuffles the copy and returns it.
+ * @param {Array} deckMaster the master deck of cards
+ * @returns {array} the shuffled deck
+ */
+shuffleDeck = function (deckMaster) {
+  let shuffled = deckMaster.slice(0);
+  var j, x, i;
+  for (i = shuffled.length - 1; i > 0; i--) {
+      j = Math.floor(Math.random() * (i + 1));
+      x = shuffled[i];
+      shuffled[i] = shuffled[j];
+      shuffled[j] = x;
+  }
+  return shuffled;
+}
+
+//  DEBUG
+// Prints to the console the master deck and the play deck side by side
+//  @param {array} master 
+//  @param {array} play 
+// 
+
+displayDecksSideBySide = function (master, play) {
+  console.log();
+  console.log("##  MASTER                            PLAY");
+  console.log("--- --------------------------------- --------------------------------v");
+  for (let id=0; id<master.length; id++) {
+    let output = '';
+    output += (id+1) + '  ';
+    while(output.length<4) { output = ' ' + output; }
+    output += master[id].symbol + ', ' + master[id].color + ', ' + master[id].shading + ', ' + master[id].quantity;
+    while(output.length<38) { output += ' '; }
+    output += play[id].symbol + ', ' + play[id].color + ', ' + play[id].shading + ', ' + play[id].quantity;
+    console.log(output);
+  }
+  console.log("--- --------------------------------- --------------------------------^");
+  console.log("##  MASTER                            PLAY");
+  console.log();
+}
+// Creating the deck <End>  --------------------------------------------------------------
+
+//  Creating the table
+
+// initial size is 12, can grow to 15 and if not set amongst the 15, reshuffle and deal again.
+
+createTable = function (playDeck) {
+	//create initial table plateau of 12 dealt cards
+	var table = [];
+	
+	for ( let cards = 0; cards < 12; cards++) {
+		table[cards] = playDeck.pop();
+		};
+
+	// check that at least one set is available amongst the initial 12 cards
+	let matched = noMatch(table);
+
+//DEBUG statement
+//console.log( "\n\nIs there a match? " + matched + "\n\n");	
+	//if there is no match then deal out three additional cards.
+	if (matched === 0) {
+		//adding 3 more cards to the play area.
+		for  ( let cards = 12; cards < 15; cards++) {
+			table[cards] = playDeck.pop();
+		};
+	};
+
+// DEBUG statement to verify that the deck and table are correct.
+//console.log(" table cards: " + table.length + " Play deck size: " + playDeck.length);
+
+return table;
+};
+
+noMatch = function (playSurface) {
+		
+	for (let i = 0; i < (playSurface.length - 2); i++) {
+		for (let j = i+1; j < (playSurface.length - 1); j++) {
+	    	for (let k = j+1; k < playSurface.length; k++) {
+	   			symbolMatched = 0;
+				colorMatched = 0;
+				shadingMatched = 0;
+				quantityMatched = 0;
+				weHaveASet = 0;
+	  
+		// Are the symbols all the same or all different?
+				if (playSurface[i].symbol === playSurface[j].symbol && playSurface[i].symbol === playSurface[k].symbol) {
+					symbolMatched = 1;
+				} else if ((playSurface[i].symbol !== playSurface[j].symbol) && (playSurface[i].symbol !== playSurface[k].symbol) && (playSurface[j].symbol !== playSurface[k].symbol)) {
+					symbolMatched = 1;
+				} else { 
+					symbolMatched = 0;
+				}
+		// Now check the colors		
+				if (playSurface[i].color === playSurface[j].color && playSurface[i].color === playSurface[k].color) {
+					colorMatched = 1;
+				} else if ((playSurface[i].color !== playSurface[j].color) && (playSurface[i].color !== playSurface[k].color) && (playSurface[j].color !== playSurface[k].color)) {
+					colorMatched = 1;
+				} else { 
+					colorMatched = 0;
+				}
+		// Now the check the shading
+				if (playSurface[i].shading === playSurface[j].shading && playSurface[i].shading === playSurface[k].shading) {
+					shadingMatched = 1;
+				} else if ((playSurface[i].shading !== playSurface[j].shading) && (playSurface[i].shading !== playSurface[k].shading) && (playSurface[j].shading !== playSurface[k].shading)) {
+					shadingMatched = 1;
+				} else { 
+					shadingMatched = 0;
+				}
+		// finally the quantity of symbols
+				if (playSurface[i].quantity === playSurface[j].quantity && playSurface[i].quantity === playSurface[k].quantity) {
+					quantityMatched = 1;
+				} else if ((playSurface[i].quantity !== playSurface[j].quantity) && (playSurface[i].quantity !== playSurface[k].quantity) && (playSurface[j].quantity !== playSurface[k].quantity)) {
+					quantityMatched = 1;
+				} else { 
+					quantityMatched = 0;
+				}
+		// Now checking if we have a set
+				if (4 === (symbolMatched + colorMatched + shadingMatched + quantityMatched)) {
+					weHaveASet = 1;
+			/* DEBUG code
+			console.log ( " \n\nWe have a Set!!: i = " + i + " j = " + j + " k = " + k + " symbol: " + symbolMatched + " color: " + colorMatched + " shading: " + shadingMatched + " quantity: " + quantityMatched + "\n");
+			console.log((1) + " " + playSurface[i].symbol + ", "+ playSurface[i].color + ", "+ playSurface[i].shading + ", "+ playSurface[i].quantity);
+			console.log((2) + " " + playSurface[j].symbol + ", "+ playSurface[j].color + ", "+ playSurface[j].shading + ", "+ playSurface[j].quantity);
+			console.log((3) + " " + playSurface[k].symbol + ", "+ playSurface[k].color + ", "+ playSurface[k].shading + ", "+ playSurface[k].quantity);
+			*/
+			// if we have a set then no need to do anything else.  Break out of this loop.
+					return weHaveASet;
+				} else {
+					weHaveASet = 0;
+			/*DEBUG code
+			console.log ( " \nNo Set: i = " + i + " j = " + j + " k = " + k + " symbol: " + symbolMatched + " color: " + colorMatched + " shading: " + shadingMatched + " quantity: " + quantityMatched);
+			console.log((1) + " " + playSurface[i].symbol + ", "+ playSurface[i].color + ", "+ playSurface[i].shading + ", "+ playSurface[i].quantity);
+			console.log((2) + " " + playSurface[j].symbol + ", "+ playSurface[j].color + ", "+ playSurface[j].shading + ", "+ playSurface[j].quantity);
+			console.log((3) + " " + playSurface[k].symbol + ", "+ playSurface[k].color + ", "+ playSurface[k].shading + ", "+ playSurface[k].quantity);
+		*/
+				};
+			}; // end of k for loop
+		}; // end of j for loop
+	}; // end of i for loop
+return weHaveASet;
+
+}; //end of the function
+		
+startGame = function (playSurface, playDeck){
+	let noSets = noMatch(playSurface);
+	let i = 0;
+	while (noSets === 0) {
+		masterDeck = createDeck();
+		playDeck = shuffleDeck(masterDeck);
+		playSurface = createTable(playDeck);
+		noSets = noMatch(playSurface);
+		console.log("loop # " + i);
+		i = i+1;		
+	};	
+	console.log("ready to start");
+};
+
+drawCards = function (playSurface) {
+	for (let i = 0; i < playSurface.length; i++) {
+		createCard(playsurface);
+	};	
+};	
+
+createGame = function (){
+	// create the game screen elements
+	var CTX = document.getElementById("ctx").getContext("2d");
+//the instruction banner
+	CTX.fillRect(140, 10, 300 , 25);
+	CTX.clearRect(142, 12, 296 , 21);
+	CTX.fillText("Select Three Cards that make a Set", 200, 25);
+
+//Quit button
+	CTX.fillRect(600, 10, 20 , 20);
+	CTX.clearRect(602,12, 16, 16);
+	CTX.fillText("X", 607, 24);
+
+//Deck graphic
+	CTX.fillRect(530, 88, 80 , 120);
+	CTX.clearRect(532, 90, 76 , 116);
+	CTX.fillRect(524, 94, 80 , 120);
+	CTX.clearRect(526, 96, 76 , 116);
+	CTX.fillRect(518, 100, 80 , 120);
+	CTX.clearRect(520, 102, 76 , 116);
+	
+	CTX.fillText("Draw Deck", 530, 140);
+
+//Submit button
+	CTX.fillRect(515, 250, 100 , 50);
+	CTX.fillText("Submit", 550, 248);
+
+//Hint button
+	CTX.fillRect(515, 325, 100 , 50);
+	CTX.fillText("Hint", 550, 323);
+
+//Show button
+	CTX.fillRect(515, 400, 100 , 50);
+	CTX.fillText("Show a Set", 540, 398);
+
+};
+
+//What image should I use?
+
+displayGraphic = function (playSurface, i) {
+
+	var cardImage = "";
+
+	if ( playSurface[i].color === "red" && playSurface[i].symbol === "diamond" && playSurface[i].shading === "solid") {
+		cardImage = "resources/RedDiamondSolid.jpg";
+		return cardImage;	
+		} else if ( playSurface[i].color === "red" && playSurface[i].symbol === "diamond" && playSurface[i].shading === "striped") {
+		cardImage = "resources/RedDiamondStriped.jpg";
+		return cardImage;	
+		} else if ( playSurface[i].color === "red" && playSurface[i].symbol === "diamond" && playSurface[i].shading === "open") {
+		cardImage = "resources/RedDiamondOpen.jpg";
+		return cardImage;	
+		} else if ( playSurface[i].color === "red" && playSurface[i].symbol === "squiggle" && playSurface[i].shading === "solid") {
+		cardImage = "resources/RedSquiggleSolid.jpg";
+		return cardImage;	
+		} else if ( playSurface[i].color === "red" && playSurface[i].symbol === "squiggle" && playSurface[i].shading === "striped") {
+		cardImage = "resources/RedSquiggleStriped.jpg";
+		return cardImage;	
+		} else if ( playSurface[i].color === "red" && playSurface[i].symbol === "squiggle" && playSurface[i].shading === "open") {
+		cardImage = "resources/RedSquiggleOpen.jpg";
+		return cardImage;	
+		} else if ( playSurface[i].color === "red" && playSurface[i].symbol === "oval" && playSurface[i].shading === "solid") {
+		cardImage = "resources/RedOvalSolid.jpg";
+		return cardImage;	
+		} else if ( playSurface[i].color === "red" && playSurface[i].symbol === "oval" && playSurface[i].shading === "striped") {
+		cardImage = "resources/RedOvalStriped.jpg";
+		return cardImage;	
+		} else if ( playSurface[i].color === "red" && playSurface[i].symbol === "oval" && playSurface[i].shading === "open") {
+		cardImage = "resources/RedOvalOpen.jpg";
+		return cardImage;	
+		} else if ( playSurface[i].color === "green" && playSurface[i].symbol === "diamond" && playSurface[i].shading === "solid") {
+		cardImage = "resources/GreenDiamondSolid.jpg";
+		return cardImage;	
+		} else if ( playSurface[i].color === "green" && playSurface[i].symbol === "diamond" && playSurface[i].shading === "striped") {
+		cardImage = "resources/GreenDiamondStriped.jpg";
+		return cardImage;	
+		} else if ( playSurface[i].color === "green" && playSurface[i].symbol === "diamond" && playSurface[i].shading === "open") {
+		cardImage = "resources/GreenDiamondOpen.jpg";
+		return cardImage;	
+		} else if ( playSurface[i].color === "green" && playSurface[i].symbol === "squiggle" && playSurface[i].shading === "solid") {
+		cardImage = "resources/GreenSquiggleSolid.jpg";
+		return cardImage;	
+		} else if ( playSurface[i].color === "green" && playSurface[i].symbol === "squiggle" && playSurface[i].shading === "striped") {
+		cardImage = "resources/GreenSquiggleStriped.jpg";
+		return cardImage;	
+		} else if ( playSurface[i].color === "green" && playSurface[i].symbol === "squiggle" && playSurface[i].shading === "open") {
+		cardImage = "resources/GreenSquiggleOpen.jpg";
+		return cardImage;	
+		} else if ( playSurface[i].color === "green" && playSurface[i].symbol === "oval" && playSurface[i].shading === "solid") {
+		cardImage = "resources/GreenOvalSolid.jpg";
+		return cardImage;	
+		} else if ( playSurface[i].color === "green" && playSurface[i].symbol === "oval" && playSurface[i].shading === "striped") {
+		cardImage = "resources/GreenOvalStriped.jpg";
+		return cardImage;	
+		} else if ( playSurface[i].color === "green" && playSurface[i].symbol === "oval" && playSurface[i].shading === "open") {
+		cardImage = "resources/GreenOvalOpen.jpg";
+		return cardImage;	
+		} else if ( playSurface[i].color === "purple" && playSurface[i].symbol === "diamond" && playSurface[i].shading === "solid") {
+		cardImage = "resources/PurpleDiamondSolid.jpg";
+		return cardImage;	
+		} else if ( playSurface[i].color === "purple" && playSurface[i].symbol === "diamond" && playSurface[i].shading === "striped") {
+		cardImage = "resources/PurpleDiamondStriped.jpg";
+		return cardImage;	
+		} else if ( playSurface[i].color === "purple" && playSurface[i].symbol === "diamond" && playSurface[i].shading === "open") {
+		cardImage = "resources/PurpleDiamondOpen.jpg";
+		return cardImage;	
+		} else if ( playSurface[i].color === "purple" && playSurface[i].symbol === "squiggle" && playSurface[i].shading === "solid") {
+		cardImage = "resources/PurpleSquiggleSolid.jpg";
+		return cardImage;	
+		} else if ( playSurface[i].color === "purple" && playSurface[i].symbol === "squiggle" && playSurface[i].shading === "striped") {
+		cardImage = "resources/PurpleSquiggleStriped.jpg";
+		return cardImage;	
+		} else if ( playSurface[i].color === "purple" && playSurface[i].symbol === "squiggle" && playSurface[i].shading === "open") {
+		cardImage = "resources/PurpleSquiggleOpen.jpg";
+		return cardImage;	
+		} else if ( playSurface[i].color === "purple" && playSurface[i].symbol === "oval" && playSurface[i].shading === "solid") {
+		cardImage = "resources/PurpleOvalSolid.jpg";
+		return cardImage;	
+		} else if ( playSurface[i].color === "purple" && playSurface[i].symbol === "oval" && playSurface[i].shading === "striped") {
+		cardImage = "resources/PurpleOvalStriped.jpg";
+		return cardImage;	
+		} else if ( playSurface[i].color === "purple" && playSurface[i].symbol === "oval" && playSurface[i].shading === "open") {
+		cardImage = "resources/PurpleOvalOpen.jpg";
+		return cardImage;	
+	};
+};
+
+selectCard = function (cardX,cardY,cardW,cardL) {
+
+
+	var selected = "";
+	x = mouse.x;
+	y = mouse.y;
+	if (x >= cardX && x <= cardX + cardW) {
+		if (y >= cardY && y <= cardY + cardL) {
+			if (selected === "True") {
+				selected = "False";
+			} else {
+				selected = "True";
+				};
+		};
+	};
+	
+	return selected;
+};	
+
+createCard = function (playsurface){
+	var ctx = document.getElementById("ctx").getContext("2d");
+	var width = 80;
+	var length = 120;
+	var col1x = 25;
+	var col2x = 125;
+	var col3x = 225;
+	var col4x = 325;
+	var col5x = 425;
+	var row1y = 50;
+	var row2y = 190;
+	var row3y = 330;
+	var padxy = 2;
+	var padwl = 4;
+	var padx = 15;
+	var pos1 = 35;
+	var pos2 = 45;
+	var pos3 = 65;
+	var pos4 = 80;
+	var pos5 = 95;
+	ctx.font = '240px, Arial';
+	
+ // Each of these functions is displaying on the screen the attributes of each card.	
+	
+var cardImage = new Image();
+
+drawCardFrame = function(selected,x,y,w,l){
+	if (selected === "True") {
+	 	//set color to green	
+	 	context.fillStyle = 'green';
+		ctx.fillRect(x, y, w, l);
+		ctx.clearRect(x + padxy, y + padxy, w - padwl, l - padwl);
+        context.fillStyle = 'black';
+	} else {
+		//set color to black
+		ctx.fillRect(x, y, w, l);
+		ctx.clearRect(x + padxy, y + padxy, w - padwl, l - padwl);
+	};
+};
+		
+	cardOne = function() {
+		//drawing the card frame
+		var selected = "False"
+		
+		selected = selectCard(col1x, row1y, width, length);
+		drawCardFrame(selected,col1x, row1y, width, length);
+		
+		//card data
+		if (playSurface[0].quantity === 1) {
+			var cardImage1 = new Image();
+			cardImage1.onload = function() {  
+				ctx.drawImage(cardImage1, col1x + width/2 - padx, row1y + pos3 - padx);
+			};
+			cardImage1.src = displayGraphic(playSurface,0);
+		} else if (playSurface[0].quantity === 2) {
+			var cardImage1 = new Image();
+			cardImage1.onload = function() {  
+				ctx.drawImage(cardImage1, col1x + width/2 - padx, row1y + pos2 - padx);
+				ctx.drawImage(cardImage1, col1x + width/2 - padx, row1y + pos4 - padx);
+			};
+			cardImage1.src = displayGraphic(playSurface,0);
+			} else {
+				var cardImage1 = new Image();
+				cardImage1.onload = function() {  
+					ctx.drawImage(cardImage1, col1x + width/2 - padx, row1y + pos1 - padx);
+					ctx.drawImage(cardImage1, col1x + width/2 - padx, row1y + pos3 - padx);
+					ctx.drawImage(cardImage1, col1x + width/2 - padx, row1y + pos5 - padx);
+				};	
+				cardImage1.src = displayGraphic(playSurface,0);
+		};
+	};
+	
+	cardTwo = function() {
+	//drawing the card frame
+	ctx.fillRect(col2x, row1y, width, length);
+	ctx.clearRect(col2x + padxy, row1y + padxy, width - padwl, length - padwl);
+	//card data
+	if (playSurface[1].quantity === 1) {
+		var cardImage2 = new Image();
+		cardImage2.onload = function() {  
+			ctx.drawImage(cardImage2, col2x + width/2 - padx, row1y + pos3 - padx);
+		};
+		cardImage2.src = displayGraphic(playSurface,1);
+	} else if (playSurface[1].quantity === 2) {
+		var cardImage2 = new Image();
+		cardImage2.onload = function() {  
+			ctx.drawImage(cardImage2, col2x + width/2 - padx, row1y + pos2 - padx);
+			ctx.drawImage(cardImage2, col2x + width/2 - padx, row1y + pos4 - padx);
+		};
+		cardImage2.src = displayGraphic(playSurface,1);
+		} else {
+			var cardImage2 = new Image();
+			cardImage2.onload = function() {  
+				ctx.drawImage(cardImage2, col2x + width/2 - padx, row1y + pos1 - padx);
+				ctx.drawImage(cardImage2, col2x + width/2 - padx, row1y + pos3 - padx);
+				ctx.drawImage(cardImage2, col2x + width/2 - padx, row1y + pos5 - padx);
+			};	
+			cardImage2.src = displayGraphic(playSurface,1);
+		};
+	};
+	
+	cardThree = function() {
+	//drawing the card frame
+	ctx.fillRect(col3x, row1y, width, length);
+	ctx.clearRect(col3x + padxy, row1y + padxy, width - padwl, length - padwl);
+	//card data
+	if (playSurface[2].quantity === 1) {
+		var cardImage3 = new Image();
+		cardImage3.onload = function() {  
+			ctx.drawImage(cardImage3, col3x + width/2 - padx, row1y + pos3 - padx);
+		};
+		cardImage3.src = displayGraphic(playSurface,2);
+	} else if (playSurface[2].quantity === 2) {
+		var cardImage3 = new Image();
+		cardImage3.onload = function() {  
+			ctx.drawImage(cardImage3, col3x + width/2 - padx, row1y + pos2 - padx);
+			ctx.drawImage(cardImage3, col3x + width/2 - padx, row1y + pos4 - padx);
+			};
+		cardImage3.src = displayGraphic(playSurface,2);
+		} else {
+			var cardImage3 = new Image();
+			cardImage3.onload = function() {  
+				ctx.drawImage(cardImage3, col3x + width/2 - padx, row1y + pos1 - padx);
+				ctx.drawImage(cardImage3, col3x + width/2 - padx, row1y + pos3 - padx);
+				ctx.drawImage(cardImage3, col3x + width/2 - padx, row1y + pos5 - padx);
+			};	
+			cardImage3.src = displayGraphic(playSurface,2);
+		};
+	};
+		
+	cardFour = function() {
+	//drawing the card frame
+	ctx.fillRect(col4x, row1y, width, length);
+	ctx.clearRect(col4x + padxy, row1y + padxy, width - padwl, length - padwl);
+	//card data
+	if (playSurface[3].quantity === 1) {
+		var cardImage4 = new Image();
+		cardImage4.onload = function() {  
+			ctx.drawImage(cardImage4, col4x + width/2 - padx, row1y + pos3 - padx);
+		};
+		cardImage4.src = displayGraphic(playSurface,3);
+	} else if (playSurface[3].quantity === 2) {
+		var cardImage4 = new Image();
+		cardImage4.onload = function() {  
+			ctx.drawImage(cardImage4, col4x + width/2 - padx, row1y + pos2 - padx);
+			ctx.drawImage(cardImage4, col4x + width/2 - padx, row1y + pos4 - padx);
+		};
+		cardImage4.src = displayGraphic(playSurface,3);
+		} else {
+			var cardImage4 = new Image();
+			cardImage4.onload = function() {  
+				ctx.drawImage(cardImage4, col4x + width/2 - padx, row1y + pos1 - padx);
+				ctx.drawImage(cardImage4, col4x + width/2 - padx, row1y + pos3 - padx);
+				ctx.drawImage(cardImage4, col4x + width/2 - padx, row1y + pos5 - padx);
+			};	
+			cardImage4.src = displayGraphic(playSurface,3);
+		};
+	};
+	
+	cardFive= function() {
+	//drawing the card frame
+	ctx.fillRect(col1x, row2y, width, length);
+	ctx.clearRect(col1x + padxy, row2y + padxy, width - padwl, length - padwl);
+	//card data
+	if (playSurface[4].quantity === 1) {
+		var cardImage5 = new Image();
+		cardImage5.onload = function() {  
+			ctx.drawImage(cardImage5, col1x + width/2 - padx, row2y + pos3 - padx);
+		};
+		cardImage5.src = displayGraphic(playSurface,4);
+	} else if (playSurface[4].quantity === 2) {
+		var cardImage5 = new Image();
+		cardImage5.onload = function() {  
+			ctx.drawImage(cardImage5, col1x + width/2 - padx, row2y + pos2 - padx);
+			ctx.drawImage(cardImage5, col1x + width/2 - padx, row2y + pos4 - padx);
+		};
+		cardImage5.src = displayGraphic(playSurface,4);
+		} else {
+			var cardImage5 = new Image();
+			cardImage5.onload = function() {  
+				ctx.drawImage(cardImage5, col1x + width/2 - padx, row2y + pos1 - padx);
+				ctx.drawImage(cardImage5, col1x + width/2 - padx, row2y + pos3 - padx);
+				ctx.drawImage(cardImage5, col1x + width/2 - padx, row2y + pos5 - padx);
+			};	
+			cardImage5.src = displayGraphic(playSurface,4);
+		};
+	};
+		
+	cardSix = function() {
+	//drawing the card frame
+	ctx.fillRect(col2x, row2y, width, length);
+	ctx.clearRect(col2x + padxy, row2y + padxy, width - padwl, length - padwl);
+	//card data
+	if (playSurface[5].quantity === 1) {
+		var cardImage6 = new Image();
+		cardImage6.onload = function() {  
+			ctx.drawImage(cardImage6, col2x + width/2 - padx, row2y + pos3 - padx);
+		};
+		cardImage6.src = displayGraphic(playSurface,5);
+	} else if (playSurface[5].quantity === 2) {
+		var cardImage6 = new Image();
+		cardImage6.onload = function() {  
+			ctx.drawImage(cardImage6, col2x + width/2 - padx, row2y + pos2 - padx);
+			ctx.drawImage(cardImage6, col2x + width/2 - padx, row2y + pos4 - padx);
+		};
+		cardImage6.src = displayGraphic(playSurface,5);
+		} else {
+			var cardImage6 = new Image();
+			cardImage6.onload = function() {  
+				ctx.drawImage(cardImage6, col2x + width/2 - padx, row2y + pos1 - padx);
+				ctx.drawImage(cardImage6, col2x + width/2 - padx, row2y + pos3 - padx);
+				ctx.drawImage(cardImage6, col2x + width/2 - padx, row2y + pos5 - padx);
+			};	
+			cardImage6.src = displayGraphic(playSurface,5);
+		};
+	};
+	
+	cardSeven = function() {
+	//drawing the card frame
+	ctx.fillRect(col3x, row2y, width, length);
+	ctx.clearRect(col3x + padxy, row2y + padxy, width - padwl, length - padwl);
+	//card data
+	if (playSurface[6].quantity === 1) {
+		var cardImage7 = new Image();
+		cardImage7.onload = function() {  
+			ctx.drawImage(cardImage7, col3x + width/2 - padx, row2y + pos3 - padx);
+		};
+		cardImage7.src = displayGraphic(playSurface,6);
+	} else if (playSurface[6].quantity === 2) {
+		var cardImage7 = new Image();
+		cardImage7.onload = function() {  
+			ctx.drawImage(cardImage7, col3x + width/2 - padx, row2y + pos2 - padx);
+			ctx.drawImage(cardImage7, col3x + width/2 - padx, row2y + pos4 - padx);
+		};
+		cardImage7.src = displayGraphic(playSurface,6);
+		} else {
+			var cardImage7 = new Image();
+			cardImage7.onload = function() {  
+				ctx.drawImage(cardImage7, col3x + width/2 - padx, row2y + pos1 - padx);
+				ctx.drawImage(cardImage7, col3x + width/2 - padx, row2y + pos3 - padx);
+				ctx.drawImage(cardImage7, col3x + width/2 - padx, row2y + pos5 - padx);
+			};	
+			cardImage7.src = displayGraphic(playSurface,6);
+		};
+	};
+		
+	cardEight = function() {
+	//drawing the card frame
+	ctx.fillRect(col4x, row2y, width, length);
+	ctx.clearRect(col4x + padxy, row2y + padxy, width - padwl, length - padwl);
+	//card data
+	if (playSurface[7].quantity === 1) {
+		var cardImage8 = new Image();
+		cardImage8.onload = function() {  
+			ctx.drawImage(cardImage8, col4x + width/2 - padx, row2y + pos3 - padx);
+		};
+		cardImage8.src = displayGraphic(playSurface,7);
+	} else if (playSurface[7].quantity === 2) {
+		var cardImage8 = new Image();
+		cardImage8.onload = function() {  
+			ctx.drawImage(cardImage8, col4x + width/2 - padx, row2y + pos2 - padx);
+			ctx.drawImage(cardImage8, col4x + width/2 - padx, row2y + pos4 - padx);
+		};
+		cardImage8.src = displayGraphic(playSurface,7);
+		} else {
+			var cardImage8 = new Image();
+			cardImage8.onload = function() {  
+				ctx.drawImage(cardImage8, col4x + width/2 - padx, row2y + pos1 - padx);
+				ctx.drawImage(cardImage8, col4x + width/2 - padx, row2y + pos3 - padx);
+				ctx.drawImage(cardImage8, col4x + width/2 - padx, row2y + pos5 - padx);
+			};	
+			cardImage8.src = displayGraphic(playSurface,7);
+		};
+	};
+		
+	cardNine = function() {
+	//drawing the card frame
+	ctx.fillRect(col1x, row3y, width, length);
+	ctx.clearRect(col1x + padxy, row3y + padxy, width - padwl, length - padwl);
+	//card data
+	if (playSurface[8].quantity === 1) {
+		var cardImage9 = new Image();
+		cardImage9.onload = function() {  
+			ctx.drawImage(cardImage9, col1x + width/2 - padx, row3y + pos3 - padx);
+		};
+		cardImage9.src = displayGraphic(playSurface,8);
+	} else if (playSurface[8].quantity === 2) {
+		var cardImage9 = new Image();
+		cardImage9.onload = function() {  
+			ctx.drawImage(cardImage9, col1x + width/2 - padx, row3y + pos2 - padx);
+			ctx.drawImage(cardImage9, col1x + width/2 - padx, row3y + pos4 - padx);
+		};
+		cardImage9.src = displayGraphic(playSurface,8);
+		} else {
+			var cardImage9 = new Image();
+			cardImage9.onload = function() {  
+				ctx.drawImage(cardImage9, col1x + width/2 - padx, row3y + pos1 - padx);
+				ctx.drawImage(cardImage9, col1x + width/2 - padx, row3y + pos3 - padx);
+				ctx.drawImage(cardImage9, col1x + width/2 - padx, row3y + pos5 - padx);
+			};	
+			cardImage9.src = displayGraphic(playSurface,8);
+		};
+	};
+		
+	cardTen = function() {
+	//drawing the card frame
+	ctx.fillRect(col2x, row3y, width, length);
+	ctx.clearRect(col2x + padxy, row3y + padxy, width - padwl, length - padwl);
+	//card data
+	if (playSurface[9].quantity === 1) {
+		var cardImage10 = new Image();
+		cardImage10.onload = function() {  
+			ctx.drawImage(cardImage10, col2x + width/2 - padx, row3y + pos3 - padx);
+		};
+		cardImage10.src = displayGraphic(playSurface,9);
+	} else if (playSurface[9].quantity === 2) {
+		var cardImage10 = new Image();
+		cardImage10.onload = function() {  
+			ctx.drawImage(cardImage10, col2x + width/2 - padx, row3y + pos2 - padx);
+			ctx.drawImage(cardImage10, col2x + width/2 - padx, row3y + pos4 - padx);
+		};
+		cardImage10.src = displayGraphic(playSurface,9);
+		} else {
+			var cardImage10 = new Image();
+			cardImage10.onload = function() {  
+				ctx.drawImage(cardImage10, col2x + width/2 - padx, row3y + pos1 - padx);
+				ctx.drawImage(cardImage10, col2x + width/2 - padx, row3y + pos3 - padx);
+				ctx.drawImage(cardImage10, col2x + width/2 - padx, row3y + pos5 - padx);
+			};	
+			cardImage10.src = displayGraphic(playSurface,9);
+		};
+	};
+	
+	cardEleven = function() {
+	//drawing the card frame
+	ctx.fillRect(col3x, row3y, width, length);
+	ctx.clearRect(col3x + padxy, row3y + padxy, width - padwl, length - padwl);
+	//card data
+	if (playSurface[10].quantity === 1) {
+		var cardImage11 = new Image();
+		cardImage11.onload = function() {  
+			ctx.drawImage(cardImage11, col3x + width/2 - padx, row3y + pos3 - padx);
+		};
+		cardImage11.src = displayGraphic(playSurface,10);
+	} else if (playSurface[10].quantity === 2) {
+		var cardImage11 = new Image();
+		cardImage11.onload = function() {  
+			ctx.drawImage(cardImage11, col3x + width/2 - padx, row3y + pos2 - padx);
+			ctx.drawImage(cardImage11, col3x + width/2 - padx, row3y + pos4 - padx);
+		};
+		cardImage11.src = displayGraphic(playSurface,10);
+		} else {
+			var cardImage11 = new Image();
+			cardImage11.onload = function() {  
+				ctx.drawImage(cardImage11, col3x + width/2 - padx, row3y + pos1 - padx);
+				ctx.drawImage(cardImage11, col3x + width/2 - padx, row3y + pos3 - padx);
+				ctx.drawImage(cardImage11, col3x + width/2 - padx, row3y + pos5 - padx);
+			};	
+			cardImage11.src = displayGraphic(playSurface,10);
+		};
+	};
+			
+	cardTwelve = function() {
+	//drawing the card frame
+	ctx.fillRect(col4x, row3y, width, length);
+	ctx.clearRect(col4x + padxy, row3y + padxy, width - padwl, length - padwl);
+	//card data
+	if (playSurface[11].quantity === 1) {
+		var cardImage12 = new Image();
+		cardImage12.onload = function() {  
+			ctx.drawImage(cardImage12, col4x + width/2 - padx, row3y + pos3 - padx);
+		};
+		cardImage12.src = displayGraphic(playSurface,11);
+	} else if (playSurface[11].quantity === 2) {
+		var cardImage12 = new Image();
+		cardImage12.onload = function() {  
+			ctx.drawImage(cardImage12, col4x + width/2 - padx, row3y + pos2 - padx);
+			ctx.drawImage(cardImage12, col4x + width/2 - padx, row3y + pos4 - padx);
+		};
+		cardImage12.src = displayGraphic(playSurface,11);
+		} else {
+			var cardImage12 = new Image();
+			cardImage12.onload = function() {  
+				ctx.drawImage(cardImage12, col4x + width/2 - padx, row3y + pos1 - padx);
+				ctx.drawImage(cardImage12, col4x + width/2 - padx, row3y + pos3 - padx);
+				ctx.drawImage(cardImage12, col4x + width/2 - padx, row3y + pos5 - padx);
+			};	
+			cardImage12.src = displayGraphic(playSurface,11);
+		};
+	};	
+	
+	cardThirteen = function() {
+	//drawing the card frame
+	ctx.fillRect(col5x, row1y, width, length);
+	ctx.clearRect(col5x + padxy, row1y + padxy, width - padwl, length - padwl);
+	//card data
+	if (playSurface[12].quantity === 1) {
+		var cardImage13 = new Image();
+		cardImage13.onload = function() {  
+			ctx.drawImage(cardImage13, col5x + width/2 - padx, row1y + pos3 - padx);
+		};
+		cardImage13.src = displayGraphic(playSurface,12);
+	} else if (playSurface[12].quantity === 2) {
+		var cardImage13 = new Image();
+		cardImage13.onload = function() {  
+			ctx.drawImage(cardImage13, col5x + width/2 - padx, row1y + pos2 - padx);
+			ctx.drawImage(cardImage13, col5x + width/2 - padx, row1y + pos4 - padx);
+		};
+		cardImage13.src = displayGraphic(playSurface,12);
+		} else {
+			var cardImage13 = new Image();
+			cardImage13.onload = function() {  
+				ctx.drawImage(cardImage13, col5x + width/2 - padx, row1y + pos1 - padx);
+				ctx.drawImage(cardImage13, col5x + width/2 - padx, row1y + pos3 - padx);
+				ctx.drawImage(cardImage13, col5x + width/2 - padx, row1y + pos5 - padx);
+			};	
+			cardImage13.src = displayGraphic(playSurface,12);
+		};
+	};
+	
+	cardFourteen = function() {
+	//drawing the card frame
+	ctx.fillRect(col5x, row2y, width, length);
+	ctx.clearRect(col5x + padxy, row2y + padxy, width - padwl, length - padwl);
+	//card data
+	if (playSurface[13].quantity === 1) {
+		var cardImage14 = new Image();
+		cardImage14.onload = function() {  
+			ctx.drawImage(cardImage14, col5x + width/2 - padx, row2y + pos3 - padx);
+		};
+		cardImage14.src = displayGraphic(playSurface,13);
+	} else if (playSurface[13].quantity === 2) {
+		var cardImage14 = new Image();
+		cardImage14.onload = function() {  
+			ctx.drawImage(cardImage14, col5x + width/2 - padx, row2y + pos2 - padx);
+			ctx.drawImage(cardImage14, col5x + width/2 - padx, row2y + pos4 - padx);
+		};
+		cardImage14.src = displayGraphic(playSurface,13);
+		} else {
+			var cardImage14 = new Image();
+			cardImage14.onload = function() {  
+				ctx.drawImage(cardImage14, col5x + width/2 - padx, row2y + pos1 - padx);
+				ctx.drawImage(cardImage14, col5x + width/2 - padx, row2y + pos3 - padx);
+				ctx.drawImage(cardImage14, col5x + width/2 - padx, row2y + pos5 - padx);
+			};	
+			cardImage14.src = displayGraphic(playSurface,13);
+		};
+	};
+	
+	cardFifteen = function () {
+	//drawing the card frame
+	ctx.fillRect(col5x, row3y, width, length);
+	ctx.clearRect(col5x + padxy, row3y + padxy, width - padwl, length - padwl);
+	//card data
+	if (playSurface[14].quantity === 1) {
+		var cardImage15 = new Image();
+		cardImage15.onload = function() {  
+			ctx.drawImage(cardImage15, col5x + width/2 - padx, row3y + pos3 - padx);
+		};
+		cardImage15.src = displayGraphic(playSurface,14);
+	} else if (playSurface[14].quantity === 2) {
+		var cardImage15 = new Image();
+		cardImage15.onload = function() {  
+			ctx.drawImage(cardImage15, col5x + width/2 - padx, row3y + pos2 - padx);
+			ctx.drawImage(cardImage15, col5x + width/2 - padx, row3y + pos4 - padx);
+		};
+		cardImage15.src = displayGraphic(playSurface,14);
+		} else {
+			var cardImage15 = new Image();
+			cardImage15.onload = function() {  
+				ctx.drawImage(cardImage15, col5x + width/2 - padx, row3y + pos1 - padx);
+				ctx.drawImage(cardImage15, col5x + width/2 - padx, row3y + pos3 - padx);
+				ctx.drawImage(cardImage15, col5x + width/2 - padx, row3y + pos5 - padx);
+			};	
+			cardImage15.src = displayGraphic(playSurface,14);
+		};
+	};
+	
+	
+	//Calling the card functions aka dealing out the cards.
+	cardOne();
+	cardTwo();	
+	cardThree();	
+	cardFour();
+	cardFive();
+	cardSix();
+	cardSeven();
+	cardEight();
+	cardNine();
+	cardTen();
+	cardEleven();
+	cardTwelve();
+
+//If no match in the first 12 we need three more cards.  We should do another check to see
+// if there is a match at 15.
+ 	
+	if (playSurface.length === 15) {
+		cardThirteen();
+		cardFourteen();
+		cardFifteen();
+	};
+	
+};
+
+
+document.onclick = function() {
+	console.log("clicked");
+};
+
+// Call our Functions
+
+createGame();
+//Create the deck
+let masterDeck = createDeck();
+
+//Shuffle the deck
+var playDeck = shuffleDeck(masterDeck);
+
+// Deal the cards
+let playSurface = createTable(playDeck);
+
+// Make sure we have at least one set to start with
+startGame(playDeck, playSurface);
+
+createCard(playSurface);
+
+
+// testing  mouse
+//document.onclick();
+
+
+
+// For debug purposes
+//displayDecksSideBySide(masterDeck, playDeck);
+
+// alternate display method.  Debug only for my education
+
+//  Checking that the playdeck is a shuffled version of the master deck
+/*var m = 0;
+
+for (let i = 0; i < playDeck.length; i++) {
+        		console.log((m+1) + " " + playDeck[m].symbol + ", "+ playDeck[m].color + ", "+ playDeck[m].shading + ", "+ playDeck[m].quantity);
+				//console.log((m+1) + " " + masterDeck[m]);
+				m++;
+			}
+//
+*/
+/* Checking that the "dealt" cards are correct
+var n = 0; 
+for (let i = 0; i < playSurface.length; i++) {
+        		console.log((n+1) + " " + playSurface[n].symbol + ", "+ playSurface[n].color + ", "+ playSurface[n].shading + ", "+ playSurface[n].quantity);
+				//console.log((n+1) + " " + playSurface[n]);
+				n++;
+			}
+*/
+
+</script>
+</body>
+</html>
