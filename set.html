@@ -13,8 +13,30 @@
 	window.addEventListener("click", function(event) {
     	mouse.x = event.x,        
         mouse.y = event.y
-    	console.log(mouse);    
-        });
+		
+		
+		 var cardselected = whichCard(mouse.x, mouse.y);
+		    	
+    	
+    	cardOne();
+		cardTwo();	
+		cardThree();	
+		cardFour();
+		cardFive();
+		cardSix();
+		cardSeven();
+		cardEight();
+		cardNine();
+		cardTen();
+		cardEleven();
+		cardTwelve();
+    	
+    	if (playSurface.length === 15) {
+			cardThirteen();
+			cardFourteen();
+			cardFifteen();
+		};
+	});
  
 
 // creating a deck of cards based on these four different characteristics or suits.
@@ -223,38 +245,40 @@ drawCards = function (playSurface) {
 
 createGame = function (){
 	// create the game screen elements
-	var CTX = document.getElementById("ctx").getContext("2d");
+	var CTXG = document.getElementById("ctx").getContext("2d");
 //the instruction banner
-	CTX.fillRect(140, 10, 300 , 25);
-	CTX.clearRect(142, 12, 296 , 21);
-	CTX.fillText("Select Three Cards that make a Set", 200, 25);
+
+	CTXG.fillRect(140, 10, 300 , 25);
+	CTXG.clearRect(532, 90, 76 , 116);
+	CTXG.fillText("Select Three Cards that make a Set", 200, 25);
 
 //Quit button
-	CTX.fillRect(600, 10, 20 , 20);
-	CTX.clearRect(602,12, 16, 16);
-	CTX.fillText("X", 607, 24);
+	CTXG.rect(600, 10, 20 , 20);
+	CTXG.fillText("X", 607, 24);
 
 //Deck graphic
-	CTX.fillRect(530, 88, 80 , 120);
-	CTX.clearRect(532, 90, 76 , 116);
-	CTX.fillRect(524, 94, 80 , 120);
-	CTX.clearRect(526, 96, 76 , 116);
-	CTX.fillRect(518, 100, 80 , 120);
-	CTX.clearRect(520, 102, 76 , 116);
-	
-	CTX.fillText("Draw Deck", 530, 140);
+	CTXG.fillRect(530, 88, 80 , 120);
+	CTXG.clearRect(532, 90, 76 , 116);
+	CTXG.fillRect(524, 94, 80 , 120);
+	CTXG.clearRect(526, 96, 76 , 116);
+	CTXG.fillRect(518, 100, 80 , 120);
+	CTXG.clearRect(520, 102, 76 , 116);
+	//CTX.stroke();
+	CTXG.fillText("Draw Deck", 530, 140);
 
 //Submit button
-	CTX.fillRect(515, 250, 100 , 50);
-	CTX.fillText("Submit", 550, 248);
-
+	CTXG.rect(515, 250, 100 , 50);
+	CTXG.fillText("Submit", 550, 275);
+	
 //Hint button
-	CTX.fillRect(515, 325, 100 , 50);
-	CTX.fillText("Hint", 550, 323);
+	CTXG.rect(515, 325, 100 , 50);
+	CTXG.fillText("Hint", 560, 350);
 
 //Show button
-	CTX.fillRect(515, 400, 100 , 50);
-	CTX.fillText("Show a Set", 540, 398);
+	CTXG.rect(515, 400, 100 , 50);
+	CTXG.fillText("Show a Set", 540, 425);
+	
+	CTXG.stroke();
 
 };
 
@@ -348,22 +372,17 @@ displayGraphic = function (playSurface, i) {
 	};
 };
 
-selectCard = function (cardX,cardY,cardW,cardL) {
-
-
-	var selected = "";
+selectCard = function (selected,cardX,cardY,cardW,cardL) {
+	
 	x = mouse.x;
 	y = mouse.y;
-	if (x >= cardX && x <= cardX + cardW) {
-		if (y >= cardY && y <= cardY + cardL) {
-			if (selected === "True") {
-				selected = "False";
-			} else {
-				selected = "True";
-				};
-		};
-	};
 	
+	if ((x >= cardX && x <= cardX + cardW) && (y >= cardY && y <= cardY + cardL) && selected === "False") {
+			selected = "True";
+	} else if ((x >= cardX && x <= cardX + cardW) && (y >= cardY && y <= cardY + cardL) && selected === "True") {
+		selected = "False";
+		}; 		
+
 	return selected;
 };	
 
@@ -396,23 +415,28 @@ var cardImage = new Image();
 drawCardFrame = function(selected,x,y,w,l){
 	if (selected === "True") {
 	 	//set color to green	
-	 	context.fillStyle = 'green';
-		ctx.fillRect(x, y, w, l);
-		ctx.clearRect(x + padxy, y + padxy, w - padwl, l - padwl);
-        context.fillStyle = 'black';
+	 	ctx.strokeStyle="Green";
+		ctx.lineWidth=10;
+		ctx.strokeRect(x, y, w, l);
+		ctx.stroke();
 	} else {
 		//set color to black
-		ctx.fillRect(x, y, w, l);
-		ctx.clearRect(x + padxy, y + padxy, w - padwl, l - padwl);
+		ctx.clearRect(x-5,y-5, w + 10, l+10);
+		ctx.lineWidth=2;
+		ctx.strokeStyle="#000000";
+		ctx.strokeRect(x, y, w, l);
+		ctx.stroke();
 	};
 };
 		
-	cardOne = function() {
+	cardOne = function(ca) {
 		//drawing the card frame
-		var selected = "False"
 		
-		selected = selectCard(col1x, row1y, width, length);
+		var cardOneSelected = "False"
+		
+		selected = selectCard(cardOneSelected, col1x, row1y, width, length);
 		drawCardFrame(selected,col1x, row1y, width, length);
+		
 		
 		//card data
 		if (playSurface[0].quantity === 1) {
@@ -847,7 +871,7 @@ drawCardFrame = function(selected,x,y,w,l){
 	
 	
 	//Calling the card functions aka dealing out the cards.
-	cardOne();
+	/*cardOne();
 	cardTwo();	
 	cardThree();	
 	cardFour();
@@ -859,7 +883,7 @@ drawCardFrame = function(selected,x,y,w,l){
 	cardTen();
 	cardEleven();
 	cardTwelve();
-
+*/
 //If no match in the first 12 we need three more cards.  We should do another check to see
 // if there is a match at 15.
  	
