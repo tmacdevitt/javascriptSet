@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+
+<canvas id = "ctx" width="640" height="480" style="border:1px solid #000000;"></canvas>
+
+<script>
+
+// creating a deck of cards based on these four different characteristics or suits.
+var ctx = document.getElementById("ctx").getContext("2d");
+
+var a = "yes";
+//LoadImages
+var Rimg = new Image();
+if (a === "yes") {
+Rimg.onload = function() { 
+ctx.drawImage(Rimg, 36, 181, 26, 42, 20, 20, 20, 40);
+
+};                
+
+Rimg.src = "resources/AllShapes.png";
+
+};      
+
+
+
+</script>
+</body>
+</html>
