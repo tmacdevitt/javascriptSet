@@ -105,23 +105,23 @@ shuffleDeck = function (deckMaster) {
 //  @param {array} play 
 // 
 
-displayDecksSideBySide = function (master, play) {
-  console.log();
-  console.log("##  MASTER                            PLAY");
-  console.log("--- --------------------------------- --------------------------------v");
-  for (let id=0; id<master.length; id++) {
-    let output = '';
-    output += (id+1) + '  ';
-    while(output.length<4) { output = ' ' + output; }
-    output += master[id].symbol + ', ' + master[id].color + ', ' + master[id].shading + ', ' + master[id].quantity;
-    while(output.length<38) { output += ' '; }
-    output += play[id].symbol + ', ' + play[id].color + ', ' + play[id].shading + ', ' + play[id].quantity;
-    console.log(output);
-  }
-  console.log("--- --------------------------------- --------------------------------^");
-  console.log("##  MASTER                            PLAY");
-  console.log();
-}
+//displayDecksSideBySide = function (master, play) {
+//  console.log();
+//   console.log("##  MASTER                            PLAY");
+//   console.log("--- --------------------------------- --------------------------------v");
+//   for (let id=0; id<master.length; id++) {
+//     let output = '';
+//     output += (id+1) + '  ';
+//     while(output.length<4) { output = ' ' + output; }
+//     output += master[id].symbol + ', ' + master[id].color + ', ' + master[id].shading + ', ' + master[id].quantity;
+//     while(output.length<38) { output += ' '; }
+//     output += play[id].symbol + ', ' + play[id].color + ', ' + play[id].shading + ', ' + play[id].quantity;
+//     console.log(output);
+//   }
+//   console.log("--- --------------------------------- --------------------------------^");
+//   console.log("##  MASTER                            PLAY");
+//   console.log();
+// }
 // Creating the deck <End>  --------------------------------------------------------------
 
 //  Creating the table
@@ -201,12 +201,13 @@ noMatch = function (playSurface) {
 		// Now checking if we have a set
 				if (4 === (symbolMatched + colorMatched + shadingMatched + quantityMatched)) {
 					weHaveASet = 1;
-			/* DEBUG code
+			// DEBUG code
+			
 			console.log ( " \n\nWe have a Set!!: i = " + i + " j = " + j + " k = " + k + " symbol: " + symbolMatched + " color: " + colorMatched + " shading: " + shadingMatched + " quantity: " + quantityMatched + "\n");
-			console.log((1) + " " + playSurface[i].symbol + ", "+ playSurface[i].color + ", "+ playSurface[i].shading + ", "+ playSurface[i].quantity);
-			console.log((2) + " " + playSurface[j].symbol + ", "+ playSurface[j].color + ", "+ playSurface[j].shading + ", "+ playSurface[j].quantity);
-			console.log((3) + " " + playSurface[k].symbol + ", "+ playSurface[k].color + ", "+ playSurface[k].shading + ", "+ playSurface[k].quantity);
-			*/
+			//console.log((1) + " " + playSurface[i].symbol + ", "+ playSurface[i].color + ", "+ playSurface[i].shading + ", "+ playSurface[i].quantity);
+			//console.log((2) + " " + playSurface[j].symbol + ", "+ playSurface[j].color + ", "+ playSurface[j].shading + ", "+ playSurface[j].quantity);
+			//console.log((3) + " " + playSurface[k].symbol + ", "+ playSurface[k].color + ", "+ playSurface[k].shading + ", "+ playSurface[k].quantity);
+			
 			// if we have a set then no need to do anything else.  Break out of this loop.
 					return weHaveASet;
 				} else {
@@ -245,7 +246,7 @@ drawCards = function (playSurface) {
 	};	
 };	
 
-createGame = function (){
+createGameUI = function (){
 	// create the game screen elements
 	var CTXG = document.getElementById("ctx").getContext("2d");
 //the instruction banner
@@ -570,6 +571,24 @@ var displayed = {
 	card15:"False",
 	};
 
+var hint = {
+	card1:"False",
+	card2:"False",
+	card3:"False",
+	card4:"False",
+	card5:"False",
+	card6:"False",
+	card7:"False",
+	card8:"False",
+	card9:"False",
+	card10:"False",
+	card11:"False",
+	card12:"False",
+	card13:"False",
+	card14:"False",
+	card15:"False",
+	};
+
 		
 createCard = function (playsurface){
 	var ctx = document.getElementById("ctx").getContext("2d");
@@ -597,7 +616,7 @@ createCard = function (playsurface){
 	
  // Each of these functions is displaying on the screen the attributes of each card.	
 	
-var cardImage = new Image();
+//var cardImage = new Image();
 
 drawCardFrame = function(whichCard,x,y,w,l){
 	let card = whichCard;
@@ -622,7 +641,8 @@ drawCardFrame = function(whichCard,x,y,w,l){
 	};
 };
 	
-
+ //attempting to replace the if else statement in the cards for how many images ot display with this
+ //function.
 numberOfShapes = function(shapes, images, x, y, cardWidth, cardLength, i) {
 	if (shapes === 1) {
 	  cardImage.onload = function() {  
@@ -646,15 +666,40 @@ numberOfShapes = function(shapes, images, x, y, cardWidth, cardLength, i) {
 };
 		
 		
-cardOne = function() {
+	cardOne = function() {
   //drawing the card frame
   //selectCard(cardGrid.col1x, cardGrid.row1y, cardGrid.cardWidth, cardGrid.cardLength);
-  drawCardFrame(selected.card1, cardGrid.col1x, cardGrid.row1y, cardGrid.cardWidth, cardGrid.cardLength);
+  	drawCardFrame(selected.card1, cardGrid.col1x, cardGrid.row1y, cardGrid.cardWidth, cardGrid.cardLength);
   //card data
-  var cardImage1 = new Image();
-  numberOfShapes(playSurface[0].quantity, cardImage1, cardGrid.col1x, cardGrid.row1y, cardGrid.cardWidth, cardGrid.cardLength, 0);	
+  // An attempt to replace the precedding if else statement with a function.  Not working at the moment,
+  //numberOfShapes(playSurface[0].quantity, cardImage1, cardGrid.col1x, cardGrid.row1y, cardGrid.cardWidth, cardGrid.cardLength, 0);	
 
-};
+	  if (playSurface[0].quantity === 1) {
+		var cardImage1 = new Image();
+		cardImage1.onload = function() {  
+		  ctx.drawImage(cardImage1, cardGrid.col1x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos3 - cardGrid.padx);
+		};
+		cardImage1.src = displayGraphic(playSurface,0);
+	  } else if (playSurface[0].quantity === 2) {
+		  var cardImage1 = new Image();
+		  cardImage1.onload = function() {  
+			ctx.drawImage(cardImage1, cardGrid.col1x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos2 - cardGrid.padx);
+			ctx.drawImage(cardImage1, cardGrid.col1x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos4 - cardGrid.padx);
+		  };
+		  cardImage1.src = displayGraphic(playSurface,0);
+	  } else {
+		  var cardImage1 = new Image();
+			cardImage1.onload = function() {  
+			  ctx.drawImage(cardImage1, cardGrid.col1x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos1 - cardGrid.padx);
+			  ctx.drawImage(cardImage1, cardGrid.col1x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos3 - cardGrid.padx);
+			  ctx.drawImage(cardImage1, cardGrid.col1x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos5 - cardGrid.padx);
+			};	
+		  cardImage1.src = displayGraphic(playSurface,0);
+		};
+
+
+
+	};
 	
 	cardTwo = function() {
 	//drawing the card frame
@@ -767,31 +812,31 @@ cardOne = function() {
 			cardImage5.src = displayGraphic(playSurface,4);
 		};
 	};
-///	got this far.	
+
 	cardSix = function() {
 	//drawing the card frame
-      drawCardFrame(selected.card4, cardGrid.col2x, cardGrid.row1y, cardGrid.cardWidth, cardGrid.cardLength);
+      drawCardFrame(selected.card6, cardGrid.col2x, cardGrid.row3y, cardGrid.cardWidth, cardGrid.cardLength);
 
 	//card data
 	if (playSurface[5].quantity === 1) {
 		var cardImage6 = new Image();
 		cardImage6.onload = function() {  
-			ctx.drawImage(cardImage6, cardGrid.co2x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos3 - cardGrid.padx);
+			ctx.drawImage(cardImage6, cardGrid.col2x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos3 - cardGrid.padx);
 		};
 		cardImage6.src = displayGraphic(playSurface,5);
 	} else if (playSurface[5].quantity === 2) {
 		var cardImage6 = new Image();
 		cardImage6.onload = function() {  
-			ctx.drawImage(cardImage6, cardGrid.co2x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos2 - cardGrid.padx);
-			ctx.drawImage(cardImage6, cardGrid.co2x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos4 - cardGrid.padx);
+			ctx.drawImage(cardImage6, cardGrid.col2x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos2 - cardGrid.padx);
+			ctx.drawImage(cardImage6, cardGrid.col2x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos4 - cardGrid.padx);
 		};
 		cardImage6.src = displayGraphic(playSurface,5);
 		} else {
 			var cardImage6 = new Image();
 			cardImage6.onload = function() {  
-				ctx.drawImage(cardImage6, cardGrid.co2x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos1 - cardGrid.padx);
-				ctx.drawImage(cardImage6, cardGrid.co2x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos3 - cardGrid.padx);
-				ctx.drawImage(cardImage6, cardGrid.co2x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos5 - cardGrid.padx);
+				ctx.drawImage(cardImage6, cardGrid.col2x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos1 - cardGrid.padx);
+				ctx.drawImage(cardImage6, cardGrid.col2x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos3 - cardGrid.padx);
+				ctx.drawImage(cardImage6, cardGrid.col2x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos5 - cardGrid.padx);
 			};	
 			cardImage6.src = displayGraphic(playSurface,5);
 		};
@@ -799,28 +844,27 @@ cardOne = function() {
 	
 	cardSeven = function() {
 	//drawing the card frame
-	ctx.fillRect(cardGrid.col3x, cardGrid.row2y, cardGrid.cardWidth, cardGrid.cardLength);
-	ctx.clearRect(cardGrid.col3x + cardGrid.padxy, cardGrid.row2y + cardGrid.padxy, cardGrid.cardWidth - cardGrid.padwl, cardGrid.cardLength - cardGrid.padwl);
+	  drawCardFrame(selected.card7, cardGrid.col3x, cardGrid.row1y, cardGrid.cardWidth, cardGrid.cardLength);
 	//card data
 	if (playSurface[6].quantity === 1) {
 		var cardImage7 = new Image();
 		cardImage7.onload = function() {  
-			ctx.drawImage(cardImage7, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos3 - cardGrid.padx);
+			ctx.drawImage(cardImage7, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos3 - cardGrid.padx);
 		};
 		cardImage7.src = displayGraphic(playSurface,6);
 	} else if (playSurface[6].quantity === 2) {
 		var cardImage7 = new Image();
 		cardImage7.onload = function() {  
-			ctx.drawImage(cardImage7, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos2 - cardGrid.padx);
-			ctx.drawImage(cardImage7, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos4 - cardGrid.padx);
+			ctx.drawImage(cardImage7, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos2 - cardGrid.padx);
+			ctx.drawImage(cardImage7, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos4 - cardGrid.padx);
 		};
 		cardImage7.src = displayGraphic(playSurface,6);
 		} else {
 			var cardImage7 = new Image();
 			cardImage7.onload = function() {  
-				ctx.drawImage(cardImage7, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos1 - cardGrid.padx);
-				ctx.drawImage(cardImage7, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos3 - cardGrid.padx);
-				ctx.drawImage(cardImage7, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos5 - cardGrid.padx);
+				ctx.drawImage(cardImage7, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos1 - cardGrid.padx);
+				ctx.drawImage(cardImage7, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos3 - cardGrid.padx);
+				ctx.drawImage(cardImage7, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos5 - cardGrid.padx);
 			};	
 			cardImage7.src = displayGraphic(playSurface,6);
 		};
@@ -828,28 +872,28 @@ cardOne = function() {
 		
 	cardEight = function() {
 	//drawing the card frame
-	ctx.fillRect(cardGrid.col4x, cardGrid.row2y, cardGrid.cardWidth, cardGrid.cardLength);
-	ctx.clearRect(cardGrid.col4x + cardGrid.padxy, cardGrid.row2y + cardGrid.padxy, cardGrid.cardWidth - cardGrid.padwl, cardGrid.cardLength - cardGrid.padwl);
+	  drawCardFrame(selected.card8, cardGrid.col3x, cardGrid.row2y, cardGrid.cardWidth, cardGrid.cardLength);
+
 	//card data
 	if (playSurface[7].quantity === 1) {
 		var cardImage8 = new Image();
 		cardImage8.onload = function() {  
-			ctx.drawImage(cardImage8, cardGrid.col4x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos3 - cardGrid.padx);
+			ctx.drawImage(cardImage8, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos3 - cardGrid.padx);
 		};
 		cardImage8.src = displayGraphic(playSurface,7);
 	} else if (playSurface[7].quantity === 2) {
 		var cardImage8 = new Image();
 		cardImage8.onload = function() {  
-			ctx.drawImage(cardImage8, cardGrid.col4x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos2 - cardGrid.padx);
-			ctx.drawImage(cardImage8, cardGrid.col4x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos4 - cardGrid.padx);
+			ctx.drawImage(cardImage8, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos2 - cardGrid.padx);
+			ctx.drawImage(cardImage8, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos4 - cardGrid.padx);
 		};
 		cardImage8.src = displayGraphic(playSurface,7);
 		} else {
 			var cardImage8 = new Image();
 			cardImage8.onload = function() {  
-				ctx.drawImage(cardImage8, cardGrid.col4x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos1 - cardGrid.padx);
-				ctx.drawImage(cardImage8, cardGrid.col4x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos3 - cardGrid.padx);
-				ctx.drawImage(cardImage8, cardGrid.col4x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos5 - cardGrid.padx);
+				ctx.drawImage(cardImage8, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos1 - cardGrid.padx);
+				ctx.drawImage(cardImage8, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos3 - cardGrid.padx);
+				ctx.drawImage(cardImage8, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos5 - cardGrid.padx);
 			};	
 			cardImage8.src = displayGraphic(playSurface,7);
 		};
@@ -857,57 +901,55 @@ cardOne = function() {
 		
 	cardNine = function() {
 	//drawing the card frame
-	ctx.fillRect(cardGrid.co1x, cardGrid.row3y, cardGrid.cardWidth, cardGrid.cardLength);
-	ctx.clearRect(cardGrid.co1x + cardGrid.padxy, cardGrid.row3y + cardGrid.padxy, cardGrid.cardWidth - cardGrid.padwl, cardGrid.cardLength - cardGrid.padwl);
+	  drawCardFrame(selected.card9, cardGrid.col3x, cardGrid.row3y, cardGrid.cardWidth, cardGrid.cardLength);
 	//card data
 	if (playSurface[8].quantity === 1) {
 		var cardImage9 = new Image();
 		cardImage9.onload = function() {  
-			ctx.drawImage(cardImage9, cardGrid.co1x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos3 - cardGrid.padx);
+			ctx.drawImage(cardImage9, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos3 - cardGrid.padx);
 		};
 		cardImage9.src = displayGraphic(playSurface,8);
 	} else if (playSurface[8].quantity === 2) {
 		var cardImage9 = new Image();
 		cardImage9.onload = function() {  
-			ctx.drawImage(cardImage9, cardGrid.co1x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos2 - cardGrid.padx);
-			ctx.drawImage(cardImage9, cardGrid.co1x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos4 - cardGrid.padx);
+			ctx.drawImage(cardImage9, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos2 - cardGrid.padx);
+			ctx.drawImage(cardImage9, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos4 - cardGrid.padx);
 		};
 		cardImage9.src = displayGraphic(playSurface,8);
 		} else {
 			var cardImage9 = new Image();
 			cardImage9.onload = function() {  
-				ctx.drawImage(cardImage9, cardGrid.co1x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos1 - cardGrid.padx);
-				ctx.drawImage(cardImage9, cardGrid.co1x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos3 - cardGrid.padx);
-				ctx.drawImage(cardImage9, cardGrid.co1x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos5 - cardGrid.padx);
+				ctx.drawImage(cardImage9, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos1 - cardGrid.padx);
+				ctx.drawImage(cardImage9, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos3 - cardGrid.padx);
+				ctx.drawImage(cardImage9, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos5 - cardGrid.padx);
 			};	
 			cardImage9.src = displayGraphic(playSurface,8);
 		};
 	};
 		
 	cardTen = function() {
-	//drawing the card frame
-	ctx.fillRect(cardGrid.co2x, cardGrid.row3y, cardGrid.cardWidth, cardGrid.cardLength);
-	ctx.clearRect(cardGrid.co2x + cardGrid.padxy, cardGrid.row3y + cardGrid.padxy, cardGrid.cardWidth - cardGrid.padwl, cardGrid.cardLength - cardGrid.padwl);
+	//drawing the card frame	  
+	  drawCardFrame(selected.card10, cardGrid.col4x, cardGrid.row1y, cardGrid.cardWidth, cardGrid.cardLength);
 	//card data
 	if (playSurface[9].quantity === 1) {
 		var cardImage10 = new Image();
 		cardImage10.onload = function() {  
-			ctx.drawImage(cardImage10, cardGrid.co2x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos3 - cardGrid.padx);
+			ctx.drawImage(cardImage10, cardGrid.col4x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos3 - cardGrid.padx);
 		};
 		cardImage10.src = displayGraphic(playSurface,9);
 	} else if (playSurface[9].quantity === 2) {
 		var cardImage10 = new Image();
 		cardImage10.onload = function() {  
-			ctx.drawImage(cardImage10, cardGrid.co2x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos2 - cardGrid.padx);
-			ctx.drawImage(cardImage10, cardGrid.co2x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos4 - cardGrid.padx);
+			ctx.drawImage(cardImage10, cardGrid.col4x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos2 - cardGrid.padx);
+			ctx.drawImage(cardImage10, cardGrid.col4x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos4 - cardGrid.padx);
 		};
 		cardImage10.src = displayGraphic(playSurface,9);
 		} else {
 			var cardImage10 = new Image();
 			cardImage10.onload = function() {  
-				ctx.drawImage(cardImage10, cardGrid.co2x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos1 - cardGrid.padx);
-				ctx.drawImage(cardImage10, cardGrid.co2x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos3 - cardGrid.padx);
-				ctx.drawImage(cardImage10, cardGrid.co2x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos5 - cardGrid.padx);
+				ctx.drawImage(cardImage10, cardGrid.col4x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos1 - cardGrid.padx);
+				ctx.drawImage(cardImage10, cardGrid.col4x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos3 - cardGrid.padx);
+				ctx.drawImage(cardImage10, cardGrid.col4x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos5 - cardGrid.padx);
 			};	
 			cardImage10.src = displayGraphic(playSurface,9);
 		};
@@ -915,28 +957,27 @@ cardOne = function() {
 	
 	cardEleven = function() {
 	//drawing the card frame
-	ctx.fillRect(cardGrid.col3x, cardGrid.row3y, cardGrid.cardWidth, cardGrid.cardLength);
-	ctx.clearRect(cardGrid.col3x + cardGrid.padxy, cardGrid.row3y + cardGrid.padxy, cardGrid.cardWidth - cardGrid.padwl, cardGrid.cardLength - cardGrid.padwl);
+	  drawCardFrame(selected.card11, cardGrid.col4x, cardGrid.row2y, cardGrid.cardWidth, cardGrid.cardLength);
 	//card data
 	if (playSurface[10].quantity === 1) {
 		var cardImage11 = new Image();
 		cardImage11.onload = function() {  
-			ctx.drawImage(cardImage11, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos3 - cardGrid.padx);
+			ctx.drawImage(cardImage11, cardGrid.col4x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos3 - cardGrid.padx);
 		};
 		cardImage11.src = displayGraphic(playSurface,10);
 	} else if (playSurface[10].quantity === 2) {
 		var cardImage11 = new Image();
 		cardImage11.onload = function() {  
-			ctx.drawImage(cardImage11, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos2 - cardGrid.padx);
-			ctx.drawImage(cardImage11, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos4 - cardGrid.padx);
+			ctx.drawImage(cardImage11, cardGrid.col4x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos2 - cardGrid.padx);
+			ctx.drawImage(cardImage11, cardGrid.col4x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos4 - cardGrid.padx);
 		};
 		cardImage11.src = displayGraphic(playSurface,10);
 		} else {
 			var cardImage11 = new Image();
 			cardImage11.onload = function() {  
-				ctx.drawImage(cardImage11, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos1 - cardGrid.padx);
-				ctx.drawImage(cardImage11, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos3 - cardGrid.padx);
-				ctx.drawImage(cardImage11, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos5 - cardGrid.padx);
+				ctx.drawImage(cardImage11, cardGrid.col4x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos1 - cardGrid.padx);
+				ctx.drawImage(cardImage11, cardGrid.col4x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos3 - cardGrid.padx);
+				ctx.drawImage(cardImage11, cardGrid.col4x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos5 - cardGrid.padx);
 			};	
 			cardImage11.src = displayGraphic(playSurface,10);
 		};
@@ -944,8 +985,8 @@ cardOne = function() {
 			
 	cardTwelve = function() {
 	//drawing the card frame
-	ctx.fillRect(cardGrid.col4x, cardGrid.row3y, cardGrid.cardWidth, cardGrid.cardLength);
-	ctx.clearRect(cardGrid.col4x + cardGrid.padxy, cardGrid.row3y + cardGrid.padxy, cardGrid.cardWidth - cardGrid.padwl, cardGrid.cardLength - cardGrid.padwl);
+	  drawCardFrame(selected.card12, cardGrid.col4x, cardGrid.row3y, cardGrid.cardWidth, cardGrid.cardLength);
+
 	//card data
 	if (playSurface[11].quantity === 1) {
 		var cardImage12 = new Image();
@@ -973,8 +1014,8 @@ cardOne = function() {
 	
 	cardThirteen = function() {
 	//drawing the card frame
-	ctx.fillRect(cardGrid.col5x, cardGrid.row1y, cardGrid.cardWidth, cardGrid.cardLength);
-	ctx.clearRect(cardGrid.col5x + cardGrid.padxy, cardGrid.row1y + cardGrid.padxy, cardGrid.cardWidth - cardGrid.padwl, cardGrid.cardLength - cardGrid.padwl);
+	  drawCardFrame(selected.card13, cardGrid.col5x, cardGrid.row1y, cardGrid.cardWidth, cardGrid.cardLength);
+	
 	//card data
 	if (playSurface[12].quantity === 1) {
 		var cardImage13 = new Image();
@@ -1002,8 +1043,7 @@ cardOne = function() {
 	
 	cardFourteen = function() {
 	//drawing the card frame
-	ctx.fillRect(cardGrid.col5x, cardGrid.row2y, cardGrid.cardWidth, cardGrid.cardLength);
-	ctx.clearRect(cardGrid.col5x + cardGrid.padxy, cardGrid.row2y + cardGrid.padxy, cardGrid.cardWidth - cardGrid.padwl, cardGrid.cardLength - cardGrid.padwl);
+	  drawCardFrame(selected.card14, cardGrid.col5x, cardGrid.row2y, cardGrid.cardWidth, cardGrid.cardLength);
 	//card data
 	if (playSurface[13].quantity === 1) {
 		var cardImage14 = new Image();
@@ -1031,8 +1071,8 @@ cardOne = function() {
 	
 	cardFifteen = function () {
 	//drawing the card frame
-	ctx.fillRect(cardGrid.col5x, cardGrid.row3y, cardGrid.cardWidth, cardGrid.cardLength);
-	ctx.clearRect(cardGrid.col5x + cardGrid.padxy, cardGrid.row3y + cardGrid.padxy, cardGrid.cardWidth - cardGrid.padwl, cardGrid.cardLength - cardGrid.padwl);
+	  drawCardFrame(selected.card15, cardGrid.col5x, cardGrid.row3y, cardGrid.cardWidth, cardGrid.cardLength);
+
 	//card data
 	if (playSurface[14].quantity === 1) {
 		var cardImage15 = new Image();
@@ -1059,20 +1099,6 @@ cardOne = function() {
 	};
 	
 	
-	//Calling the card functions aka dealing out the cards.
-	/*cardOne();
-	cardTwo();	
-	cardThree();	
-	cardFour();
-	cardFive();
-	cardSix();
-	cardSeven();
-	cardEight();
-	cardNine();
-	cardTen();
-	cardEleven();
-	cardTwelve();
-*/
 //If no match in the first 12 we need three more cards.  We should do another check to see
 // if there is a match at 15.
  	
@@ -1085,16 +1111,12 @@ cardOne = function() {
 		cardFifteen();
 	};
 	
-};
+};  // end of create card function
 
-
-document.onclick = function() {
-	console.log("clicked");
-};
 
 // Call our Functions
-
-createGame();
+// Creating game UI Elements
+createGameUI();
 //Create the deck
 let masterDeck = createDeck();
 
@@ -1105,7 +1127,7 @@ var playDeck = shuffleDeck(masterDeck);
 let playSurface = createTable(playDeck);
 
 // Make sure we have at least one set to start with
-startGame(playDeck, playSurface);
+startGame(playSurface, playDeck);
 
 createCard(playSurface);
 
