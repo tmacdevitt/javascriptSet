@@ -33,7 +33,8 @@ var cardsRemaining = 69;
 var gameControls = {
 	timer:60,
 	gameOver:false,
-	hintUsed:false
+	hintUsed:false,
+	timesUp:false
 	};
 var uiElements = {
   bannerX:100,
@@ -47,9 +48,9 @@ var uiElements = {
   scoreY:10,
   scoreW:60,
   scoreL:25,
-  scoreTextX:40,
-  scoreTextY:27,
-  scoreText:000,
+  scoreTextX:36,
+  scoreTextY:29,
+  scoreText:0,
   
   timerX:360,
   timerY:10,
@@ -69,7 +70,7 @@ var uiElements = {
   submitButtonY:550,
   submitButtonW:105,
   submitButtonL:50,
-  submitButtonTextX:125,
+  submitButtonTextX:118,
   submitButtonTextY:580,
    
   hintButtonX:165,
@@ -145,7 +146,7 @@ drawDeck = function () {
         if (playDeck.length > 9) {
           deckTextLine3x = deckTextLine3x + 10;
         } else {
-            deckTextLine3x = deckTextLine3x + 12;
+            deckTextLine3x = deckTextLine3x + 15;
         }  
     } 
   
@@ -203,7 +204,13 @@ score = function () {
   SCORE.rect(uiElements.scoreX, uiElements.scoreY, uiElements.scoreW, uiElements.scoreL);
   SCORE.font="20px Arial";
   SCORE.fillStyle="green";
-  SCORE.fillText(uiElements.scoreText, uiElements.scoreTextX + 4, uiElements.scoreTextY + 2);
+  if (uiElements.scoreText === 0) {
+     SCORE.fillText(uiElements.scoreText, 45, uiElements.scoreTextY);
+  } else if (uiElements.scoreText < 999){; 
+ 		SCORE.fillText(uiElements.scoreText, uiElements.scoreTextX , uiElements.scoreTextY);
+	} else {
+  	SCORE.fillText(uiElements.scoreText, uiElements.scoreTextX - 3 , uiElements.scoreTextY);
+ 	};
   SCORE.stroke();
   SCORE.fillStyle="black";
   SCORE.closePath();
@@ -216,26 +223,36 @@ timer = function () {
   TIMER.stroke();
   TIMER.closePath();
   TIMER.beginPath();
-  TIMER.strokeStyle="black";
-  TIMER.lineWidth=4;
-  TIMER.rect(uiElements.timerX, uiElements.timerY, uiElements.timerW, uiElements.timerL);
+	TIMER.arc(uiElements.timerTextX +10, uiElements.timerTextY - 5, 17, 0, 2 * Math.PI, false);
+  TIMER.fillStyle = 'white';
+  TIMER.fill();
+  TIMER.lineWidth = 3;
+  TIMER.strokeStyle = 'black';
+  TIMER.stroke();
   TIMER.font="20px Arial";
   TIMER.fillStyle = 'red';
   if (gameControls.gameOver === false) {
-  	TIMER.fillText(uiElements.timerText, uiElements.timerTextX, uiElements.timerTextY);
+  	if (uiElements.timerText > 9) {
+  		TIMER.fillText(uiElements.timerText, uiElements.timerTextX - 1, uiElements.timerTextY);
+  	} else {
+  			TIMER.fillText(uiElements.timerText, uiElements.timerTextX + 5, uiElements.timerTextY);
+  	}
   } else {
       TIMER.fillText("", uiElements.timerTextX, uiElements.timerTextY);
   };
   TIMER.stroke();
   TIMER.fillStyle = 'black';
   TIMER.closePath();
+
 };
 
 updateTimer = function () {
   console.log("timer started");
   if (gameControls.timer === 0) {
   	gameControls.timer = 60;
-  }
+  	gameControls.timesUp = true;
+  	removeCards();
+  	}
   if (gameControls.gameOver === false) {
 	  var countdownTimer = setInterval(function(){
 		gameControls.timer --;
@@ -248,6 +265,7 @@ updateTimer = function () {
 		},1000);
 	}
 }
+
 //  Hit box logic 
 var selected = {
   card1:false,
@@ -317,9 +335,9 @@ window.addEventListener("click", function(event) {
   var width = 80;
   var length = 120; 
   
+  submitButton(mouse.x, mouse.y, playSurface);
   quitButton(mouse.x, mouse.y);
   clearSelectionButton(mouse.x, mouse.y);
-  submitButton(mouse.x, mouse.y, playSurface);
    
   whichCards(mouse.x, mouse.y, width, length);        
   //if there is a click fire off all these functions which represent all off the selectable
@@ -336,12 +354,6 @@ window.addEventListener("click", function(event) {
   cardTen();
   cardEleven();
   cardTwelve();
-  if (playSurface.length === 15) {
-    cardThirteen();
-    cardFourteen();
-    cardFifteen();
-  };
-  
   hintButton(mouse.x, mouse.y);
   drawDeck();
 });
@@ -353,19 +365,20 @@ updateScore = function () {
 	if (gameControls.hintUsed === true) {
 		scoreToAdd = 50;
 	};
+	if (gameControls.timesUp === true) {
+		scoreToAdd = 0;
+	};
 	scoreToAdd = scoreToAdd + uiElements.timerText;
 	scoreTemp = uiElements.scoreText;
 	finalScore = scoreToAdd + scoreTemp;
 	uiElements.scoreText = finalScore;
 	score();
-	console.log("Score: " + scoreToAdd + " hint used? " + gameControls.hintUsed);
+	gameControls.timesUp = false;
+	console.log("Score: " + scoreToAdd + " hint used? " + gameControls.hintUsed + " Time's Up? " + gameControls.timesUp);
 
 };
  
 // creating a deck of cards based on these four different characteristics or suits.
-
-//LoadImages
-
 createDeck = function () {
 
   var symbol = [ "diamond", "squiggle", "oval"];
@@ -543,6 +556,7 @@ flashSubmitButton = function () {
   CTX.beginPath();
   CTX.clearRect(uiElements.submitButtonX, uiElements.submitButtonY, uiElements.submitButtonW, uiElements.submitButtonL);
   CTX.lineWidth=6;
+  CTX.font="20px Arial";
   CTX.strokeStyle="Red";
   CTX.strokeRect(uiElements.submitButtonX, uiElements.submitButtonY, uiElements.submitButtonW, uiElements.submitButtonL);
   CTX.fillText("Submit", uiElements.submitButtonTextX, uiElements.submitButtonTextY);
@@ -553,13 +567,14 @@ flashSubmitButton = function () {
     CTX.beginPath();
     CTX.clearRect(uiElements.submitButtonX, uiElements.submitButtonY, uiElements.submitButtonW, uiElements.submitButtonL);
     CTX.lineWidth=6;
+    CTX.font="20px Arial";
     CTX.strokeStyle="Blue";
     CTX.strokeRect(uiElements.submitButtonX, uiElements.submitButtonY, uiElements.submitButtonW, uiElements.submitButtonL);
     CTX.fillText("Submit", uiElements.submitButtonTextX, uiElements.submitButtonTextY);
     CTX.stroke();
     CTX.closePath();
   };
-  setTimeout(restoreSubmitButton, 150);
+  setTimeout(restoreSubmitButton, 180);
   
 };
 
@@ -628,7 +643,6 @@ isMatch = function (submitted) {
           } else {
             weHaveASet = 0;
             //clear the submitted array
-            submitted.length = 0;
             //flash the submit button
             flashSubmitButton();
           };
@@ -675,8 +689,6 @@ startGame = function (playSurface, playDeck){
   };
 return playSurface; 
 };
-
-// Continue game will try three times to find a match and will then end the game after the fourth try.
 //  It should trigger a different process, of reshuffling the cards and redealing 12 cards.
 continueGame = function (submitted){
   var noSets = noMatch(playSurface);
@@ -765,31 +777,40 @@ createGameUI = function (){
 //Deck graphic
   drawDeck();
   
-//Submit button
-  CTXG.beginPath();
-  CTXG.strokeStyle="Blue";
-  CTXG.lineWidth=6;
-  CTXG.rect(uiElements.submitButtonX, uiElements.submitButtonY, uiElements.submitButtonW, uiElements.submitButtonL);
-  CTXG.fillText("Submit", uiElements.submitButtonTextX, uiElements.submitButtonTextY);
-  CTXG.stroke();
-  CTXG.closePath();
   
 //Hint button
   CTXG.beginPath();
   CTXG.lineWidth=6;
-  CTXG.rect(uiElements.hintButtonX,uiElements.hintButtonY, uiElements.hintButtonW, uiElements.hintButtonL);
-  CTXG.fillText("Hint", uiElements.hintButtonTextX, uiElements.hintButtonTextY);
+  CTXG.strokeStyle="Blue";
+  CTXG.rect(uiElements.hintButtonX, uiElements.hintButtonY, uiElements.hintButtonW, uiElements.hintButtonL);
+  CTXG.font="20px Arial";
+  CTXG.fillText("Show Hint", uiElements.hintButtonTextX - 28, uiElements.hintButtonTextY);
   CTXG.stroke();
   CTXG.closePath();
 
 //clearSelection button
   CTXG.beginPath();
   CTXG.lineWidth=6;
+  CTXG.strokeStyle="Blue";
   CTXG.rect(uiElements.clearSelectionButtonX,uiElements.clearSelectionButtonY, uiElements.clearSelectionButtonW, uiElements.clearSelectionButtonL);
-  CTXG.fillText("Clear Selection", uiElements.clearSelectionButtonTextX, uiElements.clearSelectionButtonTextY);
+  CTXG.font="14px Arial";
+  CTXG.fillText("Clear Selected", uiElements.clearSelectionButtonTextX + 1, uiElements.clearSelectionButtonTextY - 8);
+  CTXG.fillText("Cards", uiElements.clearSelectionButtonTextX + 25, uiElements.clearSelectionButtonTextY + 10);
   CTXG.stroke();
   CTXG.closePath();
   //draw score box
+
+//Submit button
+  CTXG.beginPath();
+  CTXG.strokeStyle="Blue";
+  CTXG.lineWidth=6;
+  CTXG.rect(uiElements.submitButtonX, uiElements.submitButtonY, uiElements.submitButtonW, uiElements.submitButtonL);
+  CTXG.font="20px Arial";
+  CTXG.fillText("Submit", uiElements.submitButtonTextX, uiElements.submitButtonTextY);
+  CTXG.stroke();
+  CTXG.closePath();
+
+
   score();
 
 };
@@ -801,9 +822,6 @@ quitButton = function (x,y) {
   console.log("Game ended by quit button");
   }
 };
-
-
-
 
 hintButton = function (x,y) {
   if (displayed.hint === true) {
@@ -915,6 +933,7 @@ flashHint = function(cardNumber) {
   HCTX.lineWidth=6;
   HCTX.strokeStyle="gold";
   HCTX.strokeRect(hintX, hintY, cardGrid.cardWidth, cardGrid.cardLength);
+  HCTX.font="14px Arial";
   HCTX.stroke();
   HCTX.closePath();
   
@@ -934,6 +953,22 @@ clearSelectionButton = function (x,y) {
     }
   }
 };
+
+removeCards = function () {
+	var cardsToRemove = [];
+  let j = 0;
+  for(let i = 1; i < 13; i++) {
+    let count = "card" + i;
+    if (hint[count] === true) {
+      cardsToRemove[j] = playSurface[i-1];
+      j++;
+    }
+  }
+  console.log("Times up removing cards");
+
+	isMatch(cardsToRemove);
+	
+}
 
 //What image should I use?
 // this checks the card's data and loads the right image based on that data  
@@ -1165,8 +1200,6 @@ whichCards = function(x,y,cardW,cardL,full){
   };
 };
 // hit box logic  Static values
-// this varabile is declared also in the createCard function.  On of them should be removed
-
 createCard = function (playSurface){
   var ctx = document.getElementById("ctx").getContext("2d");
  // Each of these functions is displaying on the screen the attributes of each card.    
@@ -1393,10 +1426,8 @@ refreshScreen = function () {
 // Call our Functions
 //Create the deck
 var masterDeck = createDeck();
-
 //Shuffle the deck
 var playDeck = shuffleDeck(masterDeck);
-
 // Deal the cards
 var playSurface = createTable(playDeck);
 
