@@ -29,6 +29,63 @@ var cardGrid = {
   pos5:95
 };
 var cardsRemaining = 69;
+//SFXs
+
+var selectCardSFX = new Audio();
+selectCardSFX.src = 'resources/SFX/selectCard.mp3';
+
+var deselectCardSFX = new Audio();
+deselectCardSFX.src = 'resources/SFX/deselectCard.mp3';
+
+var selectCardFullSFX = new Audio();
+selectCardFullSFX.src = 'resources/SFX/selectCardFull.mp3';
+
+var submitCardsSFX = new Audio();
+submitCardsSFX.src = 'resources/SFX/submitCards.mp3';
+
+var submitCardsRejectSFX = new Audio();
+submitCardsRejectSFX.src = 'resources/SFX/submitCardsReject.mp3';
+
+var timer2SFX = new Audio();
+timer2SFX.src = 'resources/SFX/timer2.mp3';
+
+var timer0SFX = new Audio();
+timer0SFX.src = 'resources/SFX/timer0.mp3';
+
+var newCardsSFX = new Audio();
+newCardsSFX.src = 'resources/SFX/newCards.mp3';
+
+var hintSFX = new Audio();
+hintSFX.src = 'resources/SFX/hint.mp3';
+
+var clearCardsSFX = new Audio();
+clearCardsSFX.src = 'resources/SFX/clearCards.mp3';
+
+var gameOverWinSFX = new Audio();
+gameOverWinSFX.src = 'resources/SFX/gameOverWin.mp3';
+
+// not using this one right now.
+var gameOverTimeEndsSFX = new Audio();
+gameOverTimeEndsSFX.src = 'resources/SFX/gameOverTimeEnds.mp3';
+
+// end SFX
+// BackGround Music
+
+var backgroundMusic1 = new Audio();
+backgroundMusic1.src = 'resources/SFX/backgroundMusic1.mp3';
+
+var backgroundMusic2 = new Audio();
+backgroundMusic2.src = 'resources/SFX/backgroundMusic2.mp3';
+
+//background music looping
+backgroundMusic2.addEventListener('ended', function() {
+  	this.currentTime = 0;
+  	this.play();
+  }, false);
+  backgroundMusic2.loop = true;
+backgroundMusic2.play();
+backgroundMusic2.volume = .5;
+      
 
 var gameControls = {
 	timer:60,
@@ -43,12 +100,13 @@ var uiElements = {
   bannerL:25,
   bannerTextX:110,
   bannerTextY:27,
+  bannerText:"Select 3 cards to make a match",
    
-  scoreX:20,
+  scoreX:25,
   scoreY:10,
   scoreW:60,
   scoreL:25,
-  scoreTextX:36,
+  scoreTextX:40,
   scoreTextY:29,
   scoreText:0,
   
@@ -86,6 +144,13 @@ var uiElements = {
   clearSelectionButtonL:50,
   clearSelectionButtonTextX:30,
   clearSelectionButtonTextY:510,
+  
+  rulesX:10,
+  rulesY:10,
+  rulesW:10,
+  rulesL:10,
+  rulesLine1X:10,
+  rulesLine1Y:10,
   
   pad:5
 
@@ -164,7 +229,7 @@ drawDeck = function () {
 };
 
 endGame = function () {
-    
+  gameOverWinSFX.play();  
   for (let i=1; i<16; i++){
     let endgame = "card" + (i);
     hint[endgame] = false;
@@ -205,7 +270,7 @@ score = function () {
   SCORE.font="20px Arial";
   SCORE.fillStyle="green";
   if (uiElements.scoreText === 0) {
-     SCORE.fillText(uiElements.scoreText, 45, uiElements.scoreTextY);
+     SCORE.fillText(uiElements.scoreText, uiElements.scoreTextX + 10 , uiElements.scoreTextY);
   } else if (uiElements.scoreText < 999){; 
  		SCORE.fillText(uiElements.scoreText, uiElements.scoreTextX , uiElements.scoreTextY);
 	} else {
@@ -243,6 +308,16 @@ timer = function () {
   TIMER.stroke();
   TIMER.fillStyle = 'black';
   TIMER.closePath();
+  if (uiElements.timerText === 3) {
+  	timer2SFX.play();
+  	timer2SFX.volume = .5;
+
+  }
+  if (uiElements.timerText === 0) {
+  	timer0SFX.play();
+  	timer0SFX.volume = .5;
+
+  }
 
 };
 
@@ -334,7 +409,8 @@ window.addEventListener("click", function(event) {
   mouse.y = event.y
   var width = 80;
   var length = 120; 
-  
+
+  console.log("Refresh triggered.  Game Over === " + gameControls.gameOver); 
   submitButton(mouse.x, mouse.y, playSurface);
   quitButton(mouse.x, mouse.y);
   clearSelectionButton(mouse.x, mouse.y);
@@ -356,6 +432,7 @@ window.addEventListener("click", function(event) {
   cardTwelve();
   hintButton(mouse.x, mouse.y);
   drawDeck();
+  drawBanner();
 });
 
 updateScore = function () {
@@ -369,6 +446,7 @@ updateScore = function () {
 		scoreToAdd = 0;
 	};
 	scoreToAdd = scoreToAdd + uiElements.timerText;
+	uiElements.bannerText = scoreToAdd;
 	scoreTemp = uiElements.scoreText;
 	finalScore = scoreToAdd + scoreTemp;
 	uiElements.scoreText = finalScore;
@@ -380,7 +458,6 @@ updateScore = function () {
  
 // creating a deck of cards based on these four different characteristics or suits.
 createDeck = function () {
-
   var symbol = [ "diamond", "squiggle", "oval"];
   var color = [ "red", "green", "purple"];
   var shading = [ "solid", "striped", "open"];
@@ -536,13 +613,17 @@ submitButton = function (x,y, playSurface) {
             submitted[j] = playSurface[i-1];
             j++;
           }
-        }
+      }
         console.log("submitted cards:" + submitted[0].slot + " " + submitted[1].slot + " "  + submitted[2].slot );
         //Is Match function
-        flashSubmitButton();
-        isMatch(submitted);
-        refreshScreen();
-        } else {
+        
+        if (gameControls.gameOver === false) {
+          flashSubmitButton();
+          isMatch(submitted);  
+          refreshScreen();
+        }
+      } else {
+   		    submitCardsRejectSFX.play();
           console.log("Please Select Three cards");
       }
     }
@@ -574,8 +655,9 @@ flashSubmitButton = function () {
     CTX.stroke();
     CTX.closePath();
   };
-  setTimeout(restoreSubmitButton, 180);
-  
+  if (gameControls.gameOver === false) {
+  	setTimeout(restoreSubmitButton, 180);
+  }
 };
 
 isMatch = function (submitted) {
@@ -625,6 +707,7 @@ isMatch = function (submitted) {
         if (4 === (symbolMatched + colorMatched + shadingMatched + quantityMatched)) {
           weHaveASet = 1;
           // update score
+          submitCardsSFX.play();
           updateScore();
           gameControls.hintUsed = false;
           //clearhints and selections
@@ -635,22 +718,31 @@ isMatch = function (submitted) {
             selected.full = 0;
           };
           cardsRemaining = cardsRemaining - 3;
-          
           dealCards(submitted);
           continueGame(submitted);
           submitted.length = 0;
           refreshScreen();
-          } else {
+        } else {
             weHaveASet = 0;
+            submitCardsRejectSFX.play();
             //clear the submitted array
             //flash the submit button
-            flashSubmitButton();
-          };
+            //flashSubmitButton();
+          	//Change the game banner text
+          	uiElements.bannerText = "Not a Match!";
+          	clearSelections();
+          	setTimeout(defaultBanner, 100);
+						
+        };
       }; // end of k for loop
     }; // end of j for loop
   }; // end of i for loop
   return weHaveASet;
 }; //end of the function
+
+defaultBanner = function () {
+	uiElements.bannerText = "Select 3 cards to make a match";
+};
 
 dealCards = function(submitted) {
   // Setting variables
@@ -670,7 +762,17 @@ dealCards = function(submitted) {
   playSurface[slot3].slot = slot3;
 };
   
+    
+  
 startGame = function (playSurface, playDeck){
+  
+	backgroundMusic2.addEventListener('ended', function() {
+  	this.currentTime = 0;
+  	this.play();
+  }, false);
+  backgroundMusic2.loop = true;
+	backgroundMusic2.play();
+      
   var noSets = noMatch(playSurface);
   let i = 0;
   console.log("Game Started");
@@ -686,7 +788,7 @@ startGame = function (playSurface, playDeck){
     noSets = noMatch(playSurface);
     i = i+1;
     console.log(noSets + " redeal " + i);   
-  };
+  };  
 return playSurface; 
 };
 //  It should trigger a different process, of reshuffling the cards and redealing 12 cards.
@@ -747,14 +849,17 @@ drawCards = function (playSurface) {
 drawBanner = function () {
   var CTXG = document.getElementById("ctx").getContext("2d");
   //the instruction banner
+  CTXG.clearRect(uiElements.bannerX, uiElements.bannerY, uiElements.bannerW, uiElements.bannerL);
   CTXG.beginPath();
   CTXG.strokeStyle="Purple";
   CTXG.lineWidth=4;
   CTXG.rect(uiElements.bannerX, uiElements.bannerY, uiElements.bannerW, uiElements.bannerL);
   CTXG.font="14px Arial";
-  CTXG.fillText("Select Three Cards that make a Set", uiElements.bannerTextX, uiElements.bannerTextY);
+  CTXG.fillText(uiElements.bannerText, uiElements.bannerTextX, uiElements.bannerTextY);
   CTXG.stroke();
   CTXG.closePath();
+
+
 };
 
 createGameUI = function (){
@@ -826,7 +931,8 @@ quitButton = function (x,y) {
 hintButton = function (x,y) {
   if (displayed.hint === true) {
     if ((x >= uiElements.hintButtonX - uiElements.pad && x <= uiElements.hintButtonX + uiElements.hintButtonW + (uiElements.pad * 2)) && (y >= uiElements.hintButtonY - uiElements.pad && y <= uiElements.hintButtonY + uiElements.hintButtonL + (uiElements.pad * 2))) {
-      console.log("hintButton");
+      hintSFX.play();
+     	console.log("hintButton");
       gameControls.hintUsed = true;
       let gatekeeper = 0;
       for (let i=1; i<16; i++){
@@ -944,14 +1050,19 @@ clearSelectionButton = function (x,y) {
   if (displayed.clearSubmit === true) {
     if ((x >= uiElements.clearSelectionButtonX - uiElements.pad && x <= uiElements.clearSelectionButtonX + uiElements.clearSelectionButtonW + (uiElements.pad * 2)) && (y >= uiElements.clearSelectionButtonY - uiElements.pad && y <= uiElements.clearSelectionButtonY + uiElements.clearSelectionButtonL + (uiElements.pad * 2))) {
       console.log("clearSelectionButton");
-      for (let i=1; i<16; i++){
-        let clearSelections = "card" + (i);
-        selected[clearSelections] = false;
-        selected.full = 0;
-      }
+      clearCardsSFX.play();
+      clearSelections();
       refreshScreen();
     }
   }
+};
+
+clearSelections = function () {
+	for (let i=1; i<16; i++){
+    let clearSelections = "card" + (i);
+    selected[clearSelections] = false;
+    selected.full = 0;
+  };
 };
 
 removeCards = function () {
@@ -976,85 +1087,85 @@ displayGraphic = function (playSurface, i) {
   var cardImage = "";
 
   if ( playSurface[i].color === "red" && playSurface[i].symbol === "diamond" && playSurface[i].shading === "solid") {
-  cardImage = "resources/RedDiamondSolid.jpg";
+  cardImage = "resources/images/RedDiamondSolid.jpg";
   return cardImage; 
   } else if ( playSurface[i].color === "red" && playSurface[i].symbol === "diamond" && playSurface[i].shading === "striped") {
-    cardImage = "resources/RedDiamondStriped.jpg";
+    cardImage = "resources/images/RedDiamondStriped.jpg";
     return cardImage; 
   } else if ( playSurface[i].color === "red" && playSurface[i].symbol === "diamond" && playSurface[i].shading === "open") {
-    cardImage = "resources/RedDiamondOpen.jpg";
+    cardImage = "resources/images/RedDiamondOpen.jpg";
     return cardImage; 
   } else if ( playSurface[i].color === "red" && playSurface[i].symbol === "squiggle" && playSurface[i].shading === "solid") {
-    cardImage = "resources/RedSquiggleSolid.jpg";
+    cardImage = "resources/images/RedSquiggleSolid.jpg";
     return cardImage; 
   } else if ( playSurface[i].color === "red" && playSurface[i].symbol === "squiggle" && playSurface[i].shading === "striped") {
-    cardImage = "resources/RedSquiggleStriped.jpg";
+    cardImage = "resources/images/RedSquiggleStriped.jpg";
     return cardImage; 
   } else if ( playSurface[i].color === "red" && playSurface[i].symbol === "squiggle" && playSurface[i].shading === "open") {
-    cardImage = "resources/RedSquiggleOpen.jpg";
+    cardImage = "resources/images/RedSquiggleOpen.jpg";
     return cardImage; 
   } else if ( playSurface[i].color === "red" && playSurface[i].symbol === "oval" && playSurface[i].shading === "solid") {
-    cardImage = "resources/RedOvalSolid.jpg";
+    cardImage = "resources/images/RedOvalSolid.jpg";
     return cardImage; 
   } else if ( playSurface[i].color === "red" && playSurface[i].symbol === "oval" && playSurface[i].shading === "striped") {
-    cardImage = "resources/RedOvalStriped.jpg";
+    cardImage = "resources/images/RedOvalStriped.jpg";
     return cardImage; 
   } else if ( playSurface[i].color === "red" && playSurface[i].symbol === "oval" && playSurface[i].shading === "open") {
-    cardImage = "resources/RedOvalOpen.jpg";
+    cardImage = "resources/images/RedOvalOpen.jpg";
     return cardImage; 
   } else if ( playSurface[i].color === "green" && playSurface[i].symbol === "diamond" && playSurface[i].shading === "solid") {
-    cardImage = "resources/GreenDiamondSolid.jpg";
+    cardImage = "resources/images/GreenDiamondSolid.jpg";
     return cardImage; 
   } else if ( playSurface[i].color === "green" && playSurface[i].symbol === "diamond" && playSurface[i].shading === "striped") {
-    cardImage = "resources/GreenDiamondStriped.jpg";
+    cardImage = "resources/images/GreenDiamondStriped.jpg";
     return cardImage; 
   } else if ( playSurface[i].color === "green" && playSurface[i].symbol === "diamond" && playSurface[i].shading === "open") {
-    cardImage = "resources/GreenDiamondOpen.jpg";
+    cardImage = "resources/images/GreenDiamondOpen.jpg";
     return cardImage; 
   } else if ( playSurface[i].color === "green" && playSurface[i].symbol === "squiggle" && playSurface[i].shading === "solid") {
-    cardImage = "resources/GreenSquiggleSolid.jpg";
+    cardImage = "resources/images/GreenSquiggleSolid.jpg";
     return cardImage; 
   } else if ( playSurface[i].color === "green" && playSurface[i].symbol === "squiggle" && playSurface[i].shading === "striped") {
-    cardImage = "resources/GreenSquiggleStriped.jpg";
+    cardImage = "resources/images/GreenSquiggleStriped.jpg";
     return cardImage; 
   } else if ( playSurface[i].color === "green" && playSurface[i].symbol === "squiggle" && playSurface[i].shading === "open") {
-    cardImage = "resources/GreenSquiggleOpen.jpg";
+    cardImage = "resources/images/GreenSquiggleOpen.jpg";
     return cardImage; 
   } else if ( playSurface[i].color === "green" && playSurface[i].symbol === "oval" && playSurface[i].shading === "solid") {
-    cardImage = "resources/GreenOvalSolid.jpg";
+    cardImage = "resources/images/GreenOvalSolid.jpg";
     return cardImage; 
   } else if ( playSurface[i].color === "green" && playSurface[i].symbol === "oval" && playSurface[i].shading === "striped") {
-    cardImage = "resources/GreenOvalStriped.jpg";
+    cardImage = "resources/images/GreenOvalStriped.jpg";
     return cardImage; 
   } else if ( playSurface[i].color === "green" && playSurface[i].symbol === "oval" && playSurface[i].shading === "open") {
-    cardImage = "resources/GreenOvalOpen.jpg";
+    cardImage = "resources/images/GreenOvalOpen.jpg";
     return cardImage; 
   } else if ( playSurface[i].color === "purple" && playSurface[i].symbol === "diamond" && playSurface[i].shading === "solid") {
-    cardImage = "resources/PurpleDiamondSolid.jpg";
+    cardImage = "resources/images/PurpleDiamondSolid.jpg";
     return cardImage; 
   } else if ( playSurface[i].color === "purple" && playSurface[i].symbol === "diamond" && playSurface[i].shading === "striped") {
-    cardImage = "resources/PurpleDiamondStriped.jpg";
+    cardImage = "resources/images/PurpleDiamondStriped.jpg";
     return cardImage; 
   } else if ( playSurface[i].color === "purple" && playSurface[i].symbol === "diamond" && playSurface[i].shading === "open") {
-    cardImage = "resources/PurpleDiamondOpen.jpg";
+    cardImage = "resources/images/PurpleDiamondOpen.jpg";
     return cardImage; 
   } else if ( playSurface[i].color === "purple" && playSurface[i].symbol === "squiggle" && playSurface[i].shading === "solid") {
-    cardImage = "resources/PurpleSquiggleSolid.jpg";
+    cardImage = "resources/images/PurpleSquiggleSolid.jpg";
     return cardImage; 
   } else if ( playSurface[i].color === "purple" && playSurface[i].symbol === "squiggle" && playSurface[i].shading === "striped") {
-    cardImage = "resources/PurpleSquiggleStriped.jpg";
+    cardImage = "resources/images/PurpleSquiggleStriped.jpg";
     return cardImage; 
   } else if ( playSurface[i].color === "purple" && playSurface[i].symbol === "squiggle" && playSurface[i].shading === "open") {
-    cardImage = "resources/PurpleSquiggleOpen.jpg";
+    cardImage = "resources/images/PurpleSquiggleOpen.jpg";
     return cardImage; 
   } else if ( playSurface[i].color === "purple" && playSurface[i].symbol === "oval" && playSurface[i].shading === "solid") {
-    cardImage = "resources/PurpleOvalSolid.jpg";
+    cardImage = "resources/images/PurpleOvalSolid.jpg";
     return cardImage; 
   } else if ( playSurface[i].color === "purple" && playSurface[i].symbol === "oval" && playSurface[i].shading === "striped") {
-    cardImage = "resources/PurpleOvalStriped.jpg";
+    cardImage = "resources/images/PurpleOvalStriped.jpg";
     return cardImage; 
   } else if ( playSurface[i].color === "purple" && playSurface[i].symbol === "oval" && playSurface[i].shading === "open") {
-    cardImage = "resources/PurpleOvalOpen.jpg";
+    cardImage = "resources/images/PurpleOvalOpen.jpg";
     return cardImage; 
   };
 };
@@ -1067,136 +1178,157 @@ whichCards = function(x,y,cardW,cardL,full){
     if (selected.card1 === false && selected.full < 3) {
       selected.card1 = true;
       selected.full = selected.full + 1;
+      selectCardSFX.play();
     } else if (selected.card1 === true){
         selected.card1 = false;
         selected.full = selected.full - 1;
-    } 
+        deselectCardSFX.play();
+    } else { 
+    		selectCardFullSFX.play();
+    }
   } else if (((x >= cardGrid.col1x && x <= cardGrid.col1x + cardW) && (y >= cardGrid.row2y && y <= cardGrid.row2y + cardL)) && displayed.card2 === true) {
       console.log("card2");
       if (selected.card2 === false && selected.full < 3) {
         selected.card2 = true;
         selected.full = selected.full + 1;
+        selectCardSFX.play();
       } else if (selected.card2 === true) {
           selected.card2 = false;
           selected.full = selected.full - 1;
-      }  
+          deselectCardSFX.play();
+	    } else { 
+    		selectCardFullSFX.play();
+  	  }
   } else if (((x >= cardGrid.col1x && x <= cardGrid.col1x + cardW) && (y >= cardGrid.row3y && y <= cardGrid.row3y + cardL)) && displayed.card3 === true) {
       console.log("card3");
       if (selected.card3 === false && selected.full < 3) {
         selected.card3 = true;
         selected.full = selected.full + 1;
+        selectCardSFX.play();
       } else if (selected.card3 === true) {
           selected.card3 = false;
           selected.full = selected.full - 1;
-      }  
+          deselectCardSFX.play();
+     } else { 
+    		selectCardFullSFX.play();
+     }
   } else if (((x >= cardGrid.col2x && x <= cardGrid.col2x + cardW) && (y >= cardGrid.row1y && y <= cardGrid.row1y + cardL)) && displayed.card4 === true) {
       console.log("card4");
       if (selected.card4 === false && selected.full < 3) {
         selected.card4 = true;
         selected.full = selected.full + 1;
+        selectCardSFX.play();
       } else if (selected.card4 === true) {
           selected.card4 = false;
           selected.full = selected.full - 1;
-      }  
+          deselectCardSFX.play();
+     } else { 
+    		selectCardFullSFX.play();
+     }
   } else if (((x >= cardGrid.col2x && x <= cardGrid.col2x + cardW) && (y >= cardGrid.row2y && y <= cardGrid.row2y + cardL)) && displayed.card5 === true) {
       console.log("card5");
       if (selected.card5 === false && selected.full < 3) {
         selected.card5 = true;
         selected.full = selected.full + 1;
+        selectCardSFX.play();
       } else if (selected.card5 === true) {
           selected.card5 = false;
           selected.full = selected.full - 1;
-      }  
+          deselectCardSFX.play();
+      } else { 
+    		selectCardFullSFX.play();
+	    }
   } else if (((x >= cardGrid.col2x && x <= cardGrid.col2x + cardW) && (y >= cardGrid.row3y && y <= cardGrid.row3y + cardL)) && displayed.card6 === true) {
       console.log("card6");
       if (selected.card6 === false && selected.full < 3) {
         selected.card6 = true;
         selected.full = selected.full + 1;
+        selectCardSFX.play();
       } else if (selected.card6 === true) {
           selected.card6 = false;
           selected.full = selected.full - 1;
-      }  
+          deselectCardSFX.play();
+	    } else { 
+    		selectCardFullSFX.play();
+  	  }
   } else if (((x >= cardGrid.col3x && x <= cardGrid.col3x + cardW) && (y >= cardGrid.row1y && y <= cardGrid.row1y + cardL)) && displayed.card7 === true) {
       console.log("card7");
       if (selected.card7 === false && selected.full < 3) {
         selected.card7 = true;
         selected.full = selected.full + 1;
+        selectCardSFX.play();
       } else if (selected.card7 === true) {
           selected.card7 = false;
           selected.full = selected.full - 1;
-      }  
+          deselectCardSFX.play();
+	    } else { 
+    		selectCardFullSFX.play();
+  	  }
   } else if (((x >= cardGrid.col3x && x <= cardGrid.col3x + cardW) && (y >= cardGrid.row2y && y <= cardGrid.row2y + cardL)) && displayed.card8 === true) {
       console.log("card8");
       if (selected.card8 === false && selected.full < 3) {
         selected.card8 = true;
         selected.full = selected.full + 1;
+        selectCardSFX.play();
       } else if (selected.card8 === true) {
           selected.card8 = false;
           selected.full = selected.full - 1;
-      }  
+          deselectCardSFX.play();
+	    } else { 
+    		selectCardFullSFX.play();
+  	  }
   } else if (((x >= cardGrid.col3x && x <= cardGrid.col3x + cardW) && (y >= cardGrid.row3y && y <= cardGrid.row3y + cardL)) && displayed.card9 === true) {
       console.log("card9");
       if (selected.card9 === false && selected.full < 3) {
         selected.card9 = true;
         selected.full = selected.full + 1;
+        selectCardSFX.play();
       } else if (selected.card9 === true) {
           selected.card9 = false;
           selected.full = selected.full - 1;
-      }  
+          deselectCardSFX.play();
+	    } else { 
+    		selectCardFullSFX.play();
+  	  }
   } else if (((x >= cardGrid.col4x && x <= cardGrid.col4x + cardW) && (y >= cardGrid.row1y && y <= cardGrid.row1y + cardL)) && displayed.card10 === true) {
       console.log("card10");
       if (selected.card10 === false && selected.full < 3) {
         selected.card10 = true;
         selected.full = selected.full + 1;
+        selectCardSFX.play();
       } else if (selected.card10 === true) {
           selected.card10 = false;
           selected.full = selected.full - 1;
-      }  
+          deselectCardSFX.play();
+	    } else { 
+    		selectCardFullSFX.play();
+  	  }
   } else if (((x >= cardGrid.col4x && x <= cardGrid.col4x + cardW) && (y >= cardGrid.row2y && y <= cardGrid.row2y + cardL)) && displayed.card11 === true)  {
       console.log("card11");
       if (selected.card11 === false && selected.full < 3) {
         selected.card11 = true;
         selected.full = selected.full + 1;
+        selectCardSFX.play();
       } else if (selected.card11 === true) {
           selected.card11 = false;
           selected.full = selected.full - 1;
-      }   
+          deselectCardSFX.play();
+	    } else { 
+    		selectCardFullSFX.play();
+  	  }
   } else if (((x >= cardGrid.col4x && x <= cardGrid.col4x + cardW) && (y >= cardGrid.row3y && y <= cardGrid.row3y + cardL)) && displayed.card12 === true)  {
       console.log("card12");
       if (selected.card12 === false && selected.full < 3) {
         selected.card12 = true;
         selected.full = selected.full + 1;
+        selectCardSFX.play();
       } else if (selected.card12 === true) {
           selected.card12 = false;
           selected.full = selected.full - 1;
-      }   
-  } else if (((x >= cardGrid.col5x && x <= cardGrid.col5x + cardW) && (y >= cardGrid.row1y && y <= cardGrid.row1y + cardL)) && displayed.card13 === true)  {
-      console.log("card13");
-      if (selected.card13 === false && selected.full < 3) {
-        selected.card13 = true;
-        selected.full = selected.full + 1;
-      } else if (selected.card13 === true) {
-          selected.card13 = false;
-          selected.full = selected.full - 1;
-      }   
-  } else if (((x >= cardGrid.col5x && x <= cardGrid.col5x + cardW) && (y >= cardGrid.row2y && y <= cardGrid.row2y + cardL)) && displayed.card14 === true)  {
-      console.log("card14");
-      if (selected.card14 === false && selected.full < 3) {
-        selected.card14 = true;
-        selected.full = selected.full + 1;
-      } else if (selected.card14 === true) {
-          selected.card14 = false;
-          selected.full = selected.full - 1;
-      }   
-  } else if (((x >= cardGrid.col5x && x <= cardGrid.col5x + cardW) && (y >= cardGrid.row3y && y <= cardGrid.row3y + cardL)) && displayed.card15 === true)  {
-      console.log("card15");
-      if (selected.card15 === false && selected.full < 3) {
-        selected.card15 = true;
-        selected.full = selected.full + 1;
-      } else if (selected.card15 === true) {
-          selected.card15 = false;
-          selected.full = selected.full - 1;
-      }  
+          deselectCardSFX.play();
+	    } else { 
+    		selectCardFullSFX.play();
+  	  }
   };
 };
 // hit box logic  Static values
@@ -1416,12 +1548,9 @@ refreshScreen = function () {
   cardTen();
   cardEleven();
   cardTwelve();
-  if (playSurface.length === 15) {
-    cardThirteen();
-    cardFourteen();
-    cardFifteen();
-  };
-
+  drawBanner();
+  flashSubmitButton();
+  
 };  
 // Call our Functions
 //Create the deck
@@ -1458,4 +1587,22 @@ updateTimer();
 //      }
 //
 }
+
+// Tutorial section
+
+displayRules = function () {
+ 
+  var RULES = document.getElementById("ctx").getContext("2d");
+
+  RULES.beginPath();
+  RULES.strokeStyle="Blue";
+  RULES.lineWidth=6;
+  RULES.rect(uiElements.rulesX, uiElements.rulesY, uiElements.rulesW, uiElements.rulesL);
+  RULES.font="20px Arial";
+  RULES.fillText("HOW TO PLAY", uiElements.rulesLine1X, uiElements.rulesLine1Y);
+  RULES.stroke();
+  RULES.closePath();
+
+};
+
 </script> </body> </html>

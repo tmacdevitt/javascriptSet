@@ -92,35 +92,36 @@ var uiElements = {
   bannerY:10,
   bannerW:300,
   bannerL:25,
-  bannerTextX:200,
-  bannerTextY:25,
+  bannerTextX:180,
+  bannerTextY:27,
    
   quitButtonX:600,
   quitButtonY:10,
   quitButtonW:20,
   quitButtonL:20,
-  quitButtonTextX:607,
-  quitButtonTextY:24,
+  quitButtonTextX:606,
+  quitButtonTextY:25,
   
   submitButtonX:515,
   submitButtonY:250,
-  submitButtonW:100,
+  submitButtonW:105,
   submitButtonL:50,
-  submitButtonTextX:550,
-  submitButtonTextY:275,
+  submitButtonTextX:545,
+  submitButtonTextY:280,
    
   hintButtonX:515,
   hintButtonY:325,
-  hintButtonW:100,
+  hintButtonW:105,
   hintButtonL:50,
   hintButtonTextX:555,
-  hintButtonTextY:350,
-  difficultyButtonX:515,
-  difficultyButtonY:400,
-  difficultyButtonW:100,
-  difficultyButtonL:50,
-  difficultyButtonTextX:525,
-  difficultyButtonTextY:425,
+  hintButtonTextY:355,
+  
+  clearSelectionButtonX:515,
+  clearSelectionButtonY:400,
+  clearSelectionButtonW:105,
+  clearSelectionButtonL:50,
+  clearSelectionButtonTextX:520,
+  clearSelectionButtonTextY:430,
   
   pad:5
 
@@ -133,10 +134,16 @@ window.addEventListener("click", function(event) {
   mouse.y = event.y
   var width = 80;
   var length = 120;	
+  
+  hintButton(mouse.x, mouse.y);
+  quitButton(mouse.x, mouse.y);
+  clearSelectionButton(mouse.x, mouse.y);
+  submitButton(mouse.x, mouse.y, playSurface);
+   
   whichCards(mouse.x, mouse.y, width, length);	    	
   //if there is a click fire off all these functions which represent all off the selectable
   // elements in the game
-  cardOne();
+    cardOne();
   cardTwo();	
   cardThree();	
   cardFour();
@@ -153,10 +160,7 @@ window.addEventListener("click", function(event) {
 		cardFourteen();
 		cardFifteen();
   };
-  hintButton(mouse.x, mouse.y);
-  quitButton(mouse.x, mouse.y);
-  difficultyButton(mouse.x, mouse.y);
-  submitButton(mouse.x, mouse.y, playSurface);
+  
 });
  
 // creating a deck of cards based on these four different characteristics or suits.
@@ -356,15 +360,18 @@ isMatch = function (submitted) {
 				// Now checking if we have a set
 				if (4 === (symbolMatched + colorMatched + shadingMatched + quantityMatched)) {
 		  		weHaveASet = 1;
-		  		//clearhints
+		  		//clearhints and selections
 		  		for (let i=1; i<16; i++){
     				let clearHints = "card" + (i);
 						hint[clearHints] = false;
+						selected[clearHints] = false;
+  					selected.full = 0;
   				};
 					dealCards(submitted);
 					console.log("Score");
 					continueGame();
-					
+					refreshScreen();
+				
  		  		} else {
 						weHaveASet = 0;
 						//flash the submit button
@@ -399,6 +406,8 @@ dealCards = function(submitted) {
 	let slot1 = submitted[0].slot;				
 	let slot2 = submitted[1].slot;
 	let slot3 = submitted[2].slot;
+
+	console.log("slot 1:" + slot1 + " slot 2:" + slot2 + " slot 3:" + slot3 );
 	//changing the cards from the ones submitted to ones from the deck
 	playSurface[slot1] = playDeck.pop();
 	playSurface[slot1].slot = slot1;
@@ -435,34 +444,75 @@ continueGame = function (){
   var noSets = noMatch(playSurface);
   let i = 0;
   console.log("New cards ");
-	while (noSets === 0) {
-    //masterDeck = createDeck();
-    let limiter = playDeck.length
-    for (let cards = limiter - 12; cards < limiter; cards++) {
-			playDeck[cards]	= playSurface.pop();
-			playDeck[cards].slot = -1;
-			//	console.log("Table cards: " + playSurface.length + " Deck cards:" + playDeck.length);
-		}	
-		playDeck = shuffleDeck(playDeck);
-		playSurface = createTable(playDeck);
-		noSets = noMatch(playSurface);
-		i = i+1;
-		console.log(noSets + " redeal " + i);		
-  };
-  
+	if (playDeck.length !== 0) {
+		while (noSets === 0) {
+    	let limiter = playDeck.length
+    	console.log("limiter = " + limiter);
+    	for (let cards = 0; cards < limiter; cards++) {
+				playDeck[cards]	= playSurface.pop();
+				playDeck[cards].slot = -1;
+			}	
+			playDeck = shuffleDeck(playDeck);
+			playSurface = createTable(playDeck);
+			noSets = noMatch(playSurface);
+			i = i+1;
+			console.log(noSets + " redeal " + i);		
+  	}
+  } else {
+  		endGame();
+  }
   return;	
 };
 
+endGame = function () {
+		
+	for (let i=1; i<16; i++){
+    let endgame = "card" + (i);
+		hint[endgame] = false;
+		selected[endgame] = false;
+  	selected.full = 0;
+  	displayed[endgame] = false;
+  };
+	let CTXG = document.getElementById("ctx").getContext("2d");
+ 	CTXG.beginPath();
+  CTXG.clearRect(20, 45, 480, 480);
+  CTXG.stroke();
+  CTXG.closePath();
+  CTXG.beginPath();
+  CTXG.fillRect(20, 45, 480, 480);
+  CTXG.font="30px Arial";
+  CTXG.fillStyle = "white";
+  CTXG.fillText("GAME OVER!!",150,100 );
+  CTXG.stroke();
+  CTXG.fillStyle = "black";
+  CTXG.closePath();
+};
+	
 drawCards = function (playSurface) {
   for (let i = 0; i < playSurface.length; i++) {
 	createCard(playSurface);
   };	
 };	
 
+drawBanner = function () {
+  var CTXG = document.getElementById("ctx").getContext("2d");
+  //the instruction banner
+  CTXG.beginPath();
+  CTXG.strokeStyle="Purple";
+  CTXG.lineWidth=4;
+  CTXG.rect(uiElements.bannerX, uiElements.bannerY, uiElements.bannerW, uiElements.bannerL);
+  CTXG.font="14px Arial";
+  CTXG.fillText("Select Three Cards that make a Set", uiElements.bannerTextX, uiElements.bannerTextY);
+  CTXG.stroke();
+  CTXG.closePath();
+};
+
 createGameUI = function (){
   // create the game screen elements
   var CTXG = document.getElementById("ctx").getContext("2d");
   //the instruction banner
+  drawBanner();
+  
   CTXG.beginPath();
   CTXG.strokeStyle="Purple";
   CTXG.lineWidth=4;
@@ -481,19 +531,8 @@ createGameUI = function (){
   CTXG.closePath();
 
 //Deck graphic
-  CTXG.beginPath();
-  CTXG.fillRect(530, 88, 80 , 120);
-  CTXG.clearRect(532, 90, 76 , 116);
-  CTXG.fillRect(524, 94, 80 , 120);
-  CTXG.clearRect(526, 96, 76 , 116);
-  CTXG.fillRect(518, 100, 80 , 120);
-  CTXG.clearRect(520, 102, 76 , 116);
-  CTXG.fillText("Draw Deck", 530, 140);
-  CTXG.fillText("Cards Left:", 530, 160);
-  CTXG.fillText(playDeck.length, 530, 180); 
-  CTXG.stroke();
-  CTXG.closePath();
-
+  drawDeck();
+  
 //Submit button
   CTXG.beginPath();
   CTXG.strokeStyle="Blue";
@@ -511,20 +550,43 @@ createGameUI = function (){
   CTXG.stroke();
   CTXG.closePath();
 
-//Difficulty button
+//clearSelection button
   CTXG.beginPath();
   CTXG.lineWidth=6;
-  CTXG.rect(uiElements.difficultyButtonX,uiElements.difficultyButtonY, uiElements.difficultyButtonW, uiElements.difficultyButtonL);
-  CTXG.fillText("Difficulty: Standard", uiElements.difficultyButtonTextX, uiElements.difficultyButtonTextY);
+  CTXG.rect(uiElements.clearSelectionButtonX,uiElements.clearSelectionButtonY, uiElements.clearSelectionButtonW, uiElements.clearSelectionButtonL);
+  CTXG.fillText("Clear Selection", uiElements.clearSelectionButtonTextX, uiElements.clearSelectionButtonTextY);
   CTXG.stroke();
   CTXG.closePath();
 
 };
 
+drawDeck = function () {
+  var XG = document.getElementById("ctx").getContext("2d");
+
+	XG.beginPath();
+  XG.fillRect(530, 88, 80 , 120);
+  XG.clearRect(532, 90, 76 , 116);
+  XG.fillRect(524, 94, 80 , 120);
+  XG.clearRect(526, 96, 76 , 116);
+  XG.fillRect(518, 100, 80 , 120);
+  XG.clearRect(520, 102, 76 , 116);
+  XG.font="14px Arial";
+  XG.fillText("Draw Deck", 525, 140);
+  XG.fillText("Cards Left:", 525, 160);
+  XG.fillStyle = 'red';
+  XG.font="24px Arial";
+  XG.fillText(playDeck.length, 545, 200); 
+  XG.stroke();
+  XG.font="14px Arial";
+  XG.fillStyle = "black";
+  XG.closePath();
+};
+ 
  
 quitButton = function (x,y) {
   if ((x >= uiElements.quitButtonX - uiElements.pad && x <= (uiElements.quitButtonX + uiElements.quitButtonW + (uiElements.pad * 2))) && (y >= uiElements.quitButtonY - uiElements.pad && y <= (uiElements.quitButtonY + uiElements.quitButtonL + (uiElements.pad * 2)))) {
-		location.reload(true);	
+	location.reload(true);	
+  endGame();
   }
 };
 
@@ -538,7 +600,6 @@ submitButton = function (x,y, playSurface) {
 				let count = "card" + i;
 				if (selected[count] === true) {
 					console.log (i-1);
-					// undefined? how to fix?  
 					submitted[j] = playSurface[i-1];
 					j++;
 				}
@@ -556,20 +617,79 @@ submitButton = function (x,y, playSurface) {
 hintButton = function (x,y) {
   if ((x >= uiElements.hintButtonX - uiElements.pad && x <= uiElements.hintButtonX + uiElements.hintButtonW + (uiElements.pad * 2)) && (y >= uiElements.hintButtonY - uiElements.pad && y <= uiElements.hintButtonY + uiElements.hintButtonL + (uiElements.pad * 2))) {
 		console.log("hintButton");
+		let gatekeeper = 0;
 		for (let i=1; i<16; i++){
     	let hints = "card" + (i);
 			if (hint[hints] === true) {
-				// find the card's xy and flash the card's border Red then back to either black or Green)
 				console.log(hints + ":" + hint[hints]);
+				while (gatekeeper === 0) {
+					flashHint(i);
+					gatekeeper = 1;
+				}	
 			}
   	}
   }
 };
 
-difficultyButton = function (x,y) {
-  if ((x >= uiElements.difficultyButtonX - uiElements.pad && x <= uiElements.difficultyButtonX + uiElements.difficultyButtonW + (uiElements.pad * 2)) && (y >= uiElements.difficultyButtonY - uiElements.pad && y <= uiElements.difficultyButtonY + uiElements.difficultyButtonL + (uiElements.pad * 2))) {
-		console.log("difficultyButton");
-		
+flashHint = function(cardNumber) {
+	switch(cardNumber) {
+    case 1:
+        console.log("cardOne");
+        break;
+    case 2:
+        console.log("cardTwo");
+        break;
+		case 3:
+        console.log("cardThree");
+        break;
+    case 4:
+        console.log("cardFour");
+        break;
+		case 5:
+        console.log("cardFive");
+        break;
+    case 6:
+        console.log("cardSix");
+        break;
+		case 7:
+        console.log("cardSeven");
+        break;
+    case 8:
+        console.log("cadrEight");
+        break;
+		case 9:
+        console.log("cardNine");
+        break;
+    case 10:
+        console.log("cardTen");
+        break;
+		case 11:
+        console.log("cardEleven");
+        break;
+    case 12:
+        console.log("cardTwelve");
+        break;
+		case 13:
+        console.log("cardThirteen");
+        break;
+    case 14:
+        console.log("cardFourteen");
+        break;
+		case 15:
+        console.log("cardFifteen");
+        break;
+	}
+};
+
+clearSelectionButton = function (x,y) {
+  if ((x >= uiElements.clearSelectionButtonX - uiElements.pad && x <= uiElements.clearSelectionButtonX + uiElements.clearSelectionButtonW + (uiElements.pad * 2)) && (y >= uiElements.clearSelectionButtonY - uiElements.pad && y <= uiElements.clearSelectionButtonY + uiElements.clearSelectionButtonL + (uiElements.pad * 2))) {
+		console.log("clearSelectionButton");
+		for (let i=1; i<16; i++){
+    				let clearSelections = "card" + (i);
+						selected[clearSelections] = false;
+  					selected.full = 0;
+		}
+  	refreshScreen();
   }
 };
 
@@ -827,26 +947,31 @@ createCard = function (playSurface){
 				ctx.strokeStyle="#000000";
 				ctx.strokeRect(x, y, w, l);
 				ctx.stroke();
-				ctx.closePath()
+				ctx.closePath();
 		};
   };
 	
+	
  //attempting to replace the if else statement in the cards for how many images ot display with this
  //function.
-  numberOfShapes = function(shapes, images, x, y, cardWidth, cardLength, i) {
+  numberOfShapes = function(shapes, images, x, y, cardWidth, cardLength,i) {
+		cardImage = images;
 		if (shapes === 1) {
 	  	cardImage.onload = function() {  
+				clearCard(x,y,cardWidth, cardLength);
 				ctx.drawImage(images, x + cardWidth/2 - cardGrid.padx, y + cardGrid.pos3 - cardGrid.padx);
 	  	};
 	  images.src = displayGraphic(playSurface,i);
 		} else if (shapes === 2) {
-			cardImage1.onload = function() {  
+			cardImage.onload = function() {  
+  			clearCard(x,y,cardWidth, cardLength);
 		  	ctx.drawImage(images, x + cardWidth/2 - cardGrid.padx, y + cardGrid.pos2 - cardGrid.padx);
 		  	ctx.drawImage(images, x + cardWidth/2 - cardGrid.padx, y + cardGrid.pos4 - cardGrid.padx);
 			};
 			images.src = displayGraphic(playSurface,i);
 		} else {
 			cardImage.onload = function() {  
+				clearCard(x,y,cardWidth, cardLength);
 		  	ctx.drawImage(images, x + cardWidth/2 - cardGrid.padx, y + cardGrid.pos1 - cardGrid.padx);
 		  	ctx.drawImage(images, x + cardWidth/2 - cardGrid.padx, y + cardGrid.pos3 - cardGrid.padx);
 		  	ctx.drawImage(images, x + cardWidth/2 - cardGrid.padx, y + cardGrid.pos5 - cardGrid.padx);
@@ -856,444 +981,134 @@ createCard = function (playSurface){
   };
 		
 		
-clearCard = function (x,y,w,h) {
-	ctx.clearRect(x,y,w,h);
-	ctx.stroke();
-};		
+	clearCard = function (x,y,w,h) {
+		ctx.clearRect(x+5,y+5,w-8,h-8);
+		ctx.stroke();
+	};		
 		
 // each of these cardX functions has 2 main parts
 // 1. draw the card frame based on whether or not the card is selected or not.  
-//  this will be replaced with a card-face graphic at a later point
 // 2. draw the correct images for the card data, such as two red filled ovals or one red open diamond		
   cardOne = function() {
-    //drawing the card frame
-    clearCard(cardGrid.col1x, cardGrid.row1y, cardGrid.cardWidth, cardGrid.cardLength);
-    drawCardFrame(selected.card1, cardGrid.col1x, cardGrid.row1y, cardGrid.cardWidth, cardGrid.cardLength);
-    //card data
-    // An attempt to replace the precedding if else statement with a function.  Not working at the moment,
-    //numberOfShapes(playSurface[0].quantity, cardImage1, cardGrid.col1x, cardGrid.row1y, cardGrid.cardWidth, cardGrid.cardLength, 0);	
-    
-    if (playSurface[0].quantity === 1) {
-	  	var cardImage1 = new Image();
-	  	cardImage1.onload = function() {  
-				ctx.drawImage(cardImage1, cardGrid.col1x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos3 - cardGrid.padx);
-	  	};
-	  cardImage1.src = displayGraphic(playSurface,0);
-		} else if (playSurface[0].quantity === 2) {
-			var cardImage1 = new Image();
-			cardImage1.onload = function() {  
-		  	ctx.drawImage(cardImage1, cardGrid.col1x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos2 - cardGrid.padx);
-		  	ctx.drawImage(cardImage1, cardGrid.col1x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos4 - cardGrid.padx);
-			};
-		cardImage1.src = displayGraphic(playSurface,0);
-		} else {
-			var cardImage1 = new Image();
-			cardImage1.onload = function() {  
-		  	ctx.drawImage(cardImage1, cardGrid.col1x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos1 - cardGrid.padx);
-		  	ctx.drawImage(cardImage1, cardGrid.col1x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos3 - cardGrid.padx);
-		  	ctx.drawImage(cardImage1, cardGrid.col1x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos5 - cardGrid.padx);
-			};	
-		cardImage1.src = displayGraphic(playSurface,0);
-		};
+		if (displayed.card1 === true) { 
+			drawCardFrame(selected.card1, cardGrid.col1x, cardGrid.row1y, cardGrid.cardWidth, cardGrid.cardLength);
+			let cardImage1 = new Image();
+			numberOfShapes(playSurface[0].quantity, cardImage1, cardGrid.col1x, cardGrid.row1y, cardGrid.cardWidth, cardGrid.cardLength, 0);
+		}
   };
-	
+
   cardTwo = function() {
-	//drawing the card frame
-	drawCardFrame(selected.card2, cardGrid.col1x, cardGrid.row2y, cardGrid.cardWidth, cardGrid.cardLength);
-	//card data
-	if (playSurface[1].quantity === 1) {
-	  var cardImage2 = new Image();
-	  cardImage2.onload = function() {  
-	    ctx.drawImage(cardImage2, cardGrid.col1x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos3 - cardGrid.padx);
-	  };
-	  cardImage2.src = displayGraphic(playSurface,1);
-	} else if (playSurface[1].quantity === 2) {
-		var cardImage2 = new Image();
-		cardImage2.onload = function() {  
-		  ctx.drawImage(cardImage2, cardGrid.col1x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos2 - cardGrid.padx);
-		  ctx.drawImage(cardImage2, cardGrid.col1x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos4 - cardGrid.padx);
-		};
-		cardImage2.src = displayGraphic(playSurface,1);
-	} else {
-		var cardImage2 = new Image();
-		cardImage2.onload = function() {  
-		  ctx.drawImage(cardImage2, cardGrid.col1x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos1 - cardGrid.padx);
-		  ctx.drawImage(cardImage2, cardGrid.col1x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos3 - cardGrid.padx);
-		  ctx.drawImage(cardImage2, cardGrid.col1x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos5 - cardGrid.padx);
-		};	
-		cardImage2.src = displayGraphic(playSurface,1);
-	};
+		if (displayed.card2 === true) { 
+			drawCardFrame(selected.card2, cardGrid.col1x, cardGrid.row2y, cardGrid.cardWidth, cardGrid.cardLength);
+			let cardImage2 = new Image();
+			numberOfShapes(playSurface[1].quantity, cardImage2, cardGrid.col1x, cardGrid.row2y, cardGrid.cardWidth, cardGrid.cardLength, 1);
+		}	
   };
 	
   cardThree = function() {
-	//drawing the card frame
-	drawCardFrame(selected.card3, cardGrid.col1x, cardGrid.row3y, cardGrid.cardWidth, cardGrid.cardLength);
-	//card data
-	if (playSurface[2].quantity === 1) {
-	  var cardImage3 = new Image();
-	  cardImage3.onload = function() {  
-		ctx.drawImage(cardImage3, cardGrid.col1x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos3 - cardGrid.padx);
-	  };
-	  cardImage3.src = displayGraphic(playSurface,2);
-	} else if (playSurface[2].quantity === 2) {
-		var cardImage3 = new Image();
-		cardImage3.onload = function() {  
-		  ctx.drawImage(cardImage3, cardGrid.col1x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos2 - cardGrid.padx);
-		  ctx.drawImage(cardImage3, cardGrid.col1x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos4 - cardGrid.padx);
-		};
-		cardImage3.src = displayGraphic(playSurface,2);
-	} else {
-		var cardImage3 = new Image();
-		cardImage3.onload = function() {  
-		  ctx.drawImage(cardImage3, cardGrid.col1x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos1 - cardGrid.padx);
-		  ctx.drawImage(cardImage3, cardGrid.col1x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos3 - cardGrid.padx);
-		  ctx.drawImage(cardImage3, cardGrid.col1x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos5 - cardGrid.padx);
-		};	
-		cardImage3.src = displayGraphic(playSurface,2);
-	};
+		if (displayed.card3 === true) { 
+			drawCardFrame(selected.card3, cardGrid.col1x, cardGrid.row3y, cardGrid.cardWidth, cardGrid.cardLength);
+			let cardImage3 = new Image();
+			numberOfShapes(playSurface[2].quantity, cardImage3, cardGrid.col1x, cardGrid.row3y, cardGrid.cardWidth, cardGrid.cardLength, 2);
+		}
   };
 		
   cardFour = function() {
-	//drawing the card frame
-	drawCardFrame(selected.card4, cardGrid.col2x, cardGrid.row1y, cardGrid.cardWidth, cardGrid.cardLength);
-	//card data
-	if (playSurface[3].quantity === 1) {
-	  var cardImage4 = new Image();
-	  cardImage4.onload = function() {  
-	    ctx.drawImage(cardImage4, cardGrid.col2x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos3 - cardGrid.padx);
-	  };
-	  cardImage4.src = displayGraphic(playSurface,3);
-	} else if (playSurface[3].quantity === 2) {
-		var cardImage4 = new Image();
-		cardImage4.onload = function() {  
-		  ctx.drawImage(cardImage4, cardGrid.col2x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos2 - cardGrid.padx);
-		  ctx.drawImage(cardImage4, cardGrid.col2x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos4 - cardGrid.padx);
-		};
-		cardImage4.src = displayGraphic(playSurface,3);
-	} else {
-		var cardImage4 = new Image();
-		cardImage4.onload = function() {  
-		  ctx.drawImage(cardImage4, cardGrid.col2x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos1 - cardGrid.padx);
-		  ctx.drawImage(cardImage4, cardGrid.col2x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos3 - cardGrid.padx);
-		  ctx.drawImage(cardImage4, cardGrid.col2x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos5 - cardGrid.padx);
-		};	
-		cardImage4.src = displayGraphic(playSurface,3);
+		if (displayed.card4 === true) { 
+			drawCardFrame(selected.card4, cardGrid.col2x, cardGrid.row1y, cardGrid.cardWidth, cardGrid.cardLength);
+			let cardImage4 = new Image();
+			numberOfShapes(playSurface[3].quantity, cardImage4, cardGrid.col2x, cardGrid.row1y, cardGrid.cardWidth, cardGrid.cardLength, 3);
+		}			
 	};
-  };
 	
-  cardFive= function() {
-	//drawing the card frame
-	drawCardFrame(selected.card5, cardGrid.col2x, cardGrid.row2y, cardGrid.cardWidth, cardGrid.cardLength);
-	//card data
-	if (playSurface[4].quantity === 1) {
-	  var cardImage5 = new Image();
-	  cardImage5.onload = function() {  
-		ctx.drawImage(cardImage5, cardGrid.col2x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos3 - cardGrid.padx);
-	  };
-	  cardImage5.src = displayGraphic(playSurface,4);
-	} else if (playSurface[4].quantity === 2) {
-		var cardImage5 = new Image();
-		cardImage5.onload = function() {  
-		  ctx.drawImage(cardImage5, cardGrid.col2x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos2 - cardGrid.padx);
-		  ctx.drawImage(cardImage5, cardGrid.col2x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos4 - cardGrid.padx);
-		};
-		cardImage5.src = displayGraphic(playSurface,4);
-	} else {
-		var cardImage5 = new Image();
-		cardImage5.onload = function() {  
-		  ctx.drawImage(cardImage5, cardGrid.col2x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos1 - cardGrid.padx);
-		  ctx.drawImage(cardImage5, cardGrid.col2x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos3 - cardGrid.padx);
-		  ctx.drawImage(cardImage5, cardGrid.col2x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos5 - cardGrid.padx);
-		};	
-		cardImage5.src = displayGraphic(playSurface,4);
+  cardFive = function() {
+	  if (displayed.card5 === true) { 
+			drawCardFrame(selected.card5, cardGrid.col2x, cardGrid.row2y, cardGrid.cardWidth, cardGrid.cardLength);
+			let cardImage5 = new Image();
+			numberOfShapes(playSurface[4].quantity, cardImage5, cardGrid.col2x, cardGrid.row2y, cardGrid.cardWidth, cardGrid.cardLength, 4);
+		}
 	};
-  };
 
   cardSix = function() {
-	//drawing the card frame
-    drawCardFrame(selected.card6, cardGrid.col2x, cardGrid.row3y, cardGrid.cardWidth, cardGrid.cardLength);
-	//card data
-	if (playSurface[5].quantity === 1) {
-	  var cardImage6 = new Image();
-	  cardImage6.onload = function() {  
-		ctx.drawImage(cardImage6, cardGrid.col2x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos3 - cardGrid.padx);
-	  };
-	  cardImage6.src = displayGraphic(playSurface,5);
-	} else if (playSurface[5].quantity === 2) {
-		var cardImage6 = new Image();
-		cardImage6.onload = function() {  
-		  ctx.drawImage(cardImage6, cardGrid.col2x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos2 - cardGrid.padx);
-		  ctx.drawImage(cardImage6, cardGrid.col2x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos4 - cardGrid.padx);
-		};
-		cardImage6.src = displayGraphic(playSurface,5);
-	} else {
-		var cardImage6 = new Image();
-		cardImage6.onload = function() {  
-		  ctx.drawImage(cardImage6, cardGrid.col2x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos1 - cardGrid.padx);
-		  ctx.drawImage(cardImage6, cardGrid.col2x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos3 - cardGrid.padx);
-		  ctx.drawImage(cardImage6, cardGrid.col2x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos5 - cardGrid.padx);
-		};	
-		cardImage6.src = displayGraphic(playSurface,5);
-	};
+		if (displayed.card6 === true) { 
+			drawCardFrame(selected.card6, cardGrid.col2x, cardGrid.row3y, cardGrid.cardWidth, cardGrid.cardLength);
+			let cardImage6 = new Image();
+			numberOfShapes(playSurface[5].quantity, cardImage6, cardGrid.col2x, cardGrid.row3y, cardGrid.cardWidth, cardGrid.cardLength, 5);
+		}
   };
 
   cardSeven = function() {
-	//drawing the card frame
-	drawCardFrame(selected.card7, cardGrid.col3x, cardGrid.row1y, cardGrid.cardWidth, cardGrid.cardLength);
-	//card data
-	if (playSurface[6].quantity === 1) {
-	  var cardImage7 = new Image();
-	  cardImage7.onload = function() {  
-		ctx.drawImage(cardImage7, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos3 - cardGrid.padx);
-	  };
-	 cardImage7.src = displayGraphic(playSurface,6);
-	} else if (playSurface[6].quantity === 2) {
-		var cardImage7 = new Image();
-		cardImage7.onload = function() {  
-		  ctx.drawImage(cardImage7, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos2 - cardGrid.padx);
-		  ctx.drawImage(cardImage7, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos4 - cardGrid.padx);
-		};
-		cardImage7.src = displayGraphic(playSurface,6);
-	} else {
-		var cardImage7 = new Image();
-		cardImage7.onload = function() {  
-		  ctx.drawImage(cardImage7, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos1 - cardGrid.padx);
-		  ctx.drawImage(cardImage7, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos3 - cardGrid.padx);
-		  ctx.drawImage(cardImage7, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos5 - cardGrid.padx);
-		};	
-		cardImage7.src = displayGraphic(playSurface,6);
-	};
+		if (displayed.card7 === true) { 
+			drawCardFrame(selected.card7, cardGrid.col3x, cardGrid.row1y, cardGrid.cardWidth, cardGrid.cardLength);
+			let cardImage7 = new Image();
+			numberOfShapes(playSurface[6].quantity, cardImage7, cardGrid.col3x, cardGrid.row1y, cardGrid.cardWidth, cardGrid.cardLength, 6);
+		}
   };
 		
   cardEight = function() {
-	//drawing the card frame
-	drawCardFrame(selected.card8, cardGrid.col3x, cardGrid.row2y, cardGrid.cardWidth, cardGrid.cardLength);
-	//card data
-	if (playSurface[7].quantity === 1) {
-	  var cardImage8 = new Image();
-	  cardImage8.onload = function() {  
-		ctx.drawImage(cardImage8, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos3 - cardGrid.padx);
-	  };
-	  cardImage8.src = displayGraphic(playSurface,7);
-	} else if (playSurface[7].quantity === 2) {
-		var cardImage8 = new Image();
-		cardImage8.onload = function() {  
-		  ctx.drawImage(cardImage8, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos2 - cardGrid.padx);
-		  ctx.drawImage(cardImage8, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos4 - cardGrid.padx);
-		};
-		cardImage8.src = displayGraphic(playSurface,7);
-	} else {
-		var cardImage8 = new Image();
-		cardImage8.onload = function() {  
-		  ctx.drawImage(cardImage8, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos1 - cardGrid.padx);
-		  ctx.drawImage(cardImage8, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos3 - cardGrid.padx);
-		  ctx.drawImage(cardImage8, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos5 - cardGrid.padx);
-		};	
-		cardImage8.src = displayGraphic(playSurface,7);
-	};
+		if (displayed.card8 === true) { 
+			drawCardFrame(selected.card8, cardGrid.col3x, cardGrid.row2y, cardGrid.cardWidth, cardGrid.cardLength);
+			let cardImage8 = new Image();
+			numberOfShapes(playSurface[7].quantity, cardImage8, cardGrid.col3x, cardGrid.row2y, cardGrid.cardWidth, cardGrid.cardLength, 7);
+		}
   };
 		
   cardNine = function() {
-	//drawing the card frame
-	drawCardFrame(selected.card9, cardGrid.col3x, cardGrid.row3y, cardGrid.cardWidth, cardGrid.cardLength);
-	//card data
-	if (playSurface[8].quantity === 1) {
-	  var cardImage9 = new Image();
-	  cardImage9.onload = function() {  
-		ctx.drawImage(cardImage9, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos3 - cardGrid.padx);
-	  };
-	  cardImage9.src = displayGraphic(playSurface,8);
-	} else if (playSurface[8].quantity === 2) {
-		var cardImage9 = new Image();
-		cardImage9.onload = function() {  
-		  ctx.drawImage(cardImage9, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos2 - cardGrid.padx);
-		  ctx.drawImage(cardImage9, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos4 - cardGrid.padx);
-		};
-		cardImage9.src = displayGraphic(playSurface,8);
-	} else {
-		var cardImage9 = new Image();
-		cardImage9.onload = function() {  
-		  ctx.drawImage(cardImage9, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos1 - cardGrid.padx);
-		  ctx.drawImage(cardImage9, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos3 - cardGrid.padx);
-		  ctx.drawImage(cardImage9, cardGrid.col3x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos5 - cardGrid.padx);
-		};	
-		cardImage9.src = displayGraphic(playSurface,8);
-	};
+		if (displayed.card9 === true) { 
+			drawCardFrame(selected.card9, cardGrid.col3x, cardGrid.row3y, cardGrid.cardWidth, cardGrid.cardLength);
+			let cardImage9 = new Image();
+			numberOfShapes(playSurface[8].quantity, cardImage9, cardGrid.col3x, cardGrid.row3y, cardGrid.cardWidth, cardGrid.cardLength, 8);
+		}
   };
 	
   cardTen = function() {
-	//drawing the card frame	  
-	drawCardFrame(selected.card10, cardGrid.col4x, cardGrid.row1y, cardGrid.cardWidth, cardGrid.cardLength);
-	//card data
-	if (playSurface[9].quantity === 1) {
-	  var cardImage10 = new Image();
-	  cardImage10.onload = function() {  
-		ctx.drawImage(cardImage10, cardGrid.col4x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos3 - cardGrid.padx);
-	  };
-	  cardImage10.src = displayGraphic(playSurface,9);
-	} else if (playSurface[9].quantity === 2) {
-		var cardImage10 = new Image();
-		cardImage10.onload = function() {  
-		  ctx.drawImage(cardImage10, cardGrid.col4x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos2 - cardGrid.padx);
-		  ctx.drawImage(cardImage10, cardGrid.col4x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos4 - cardGrid.padx);
-		};
-		cardImage10.src = displayGraphic(playSurface,9);
-	} else {
-		var cardImage10 = new Image();
-		cardImage10.onload = function() {  
-		  ctx.drawImage(cardImage10, cardGrid.col4x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos1 - cardGrid.padx);
-		  ctx.drawImage(cardImage10, cardGrid.col4x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos3 - cardGrid.padx);
-		  ctx.drawImage(cardImage10, cardGrid.col4x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos5 - cardGrid.padx);
-		};	
-		cardImage10.src = displayGraphic(playSurface,9);
+		if (displayed.card10 === true) { 
+			drawCardFrame(selected.card10, cardGrid.col4x, cardGrid.row1y, cardGrid.cardWidth, cardGrid.cardLength);
+			let cardImage10 = new Image();
+			numberOfShapes(playSurface[9].quantity, cardImage10, cardGrid.col4x, cardGrid.row1y, cardGrid.cardWidth, cardGrid.cardLength, 9);
+		}
 	};
-  };
 	
   cardEleven = function() {
-	//drawing the card frame
-	drawCardFrame(selected.card11, cardGrid.col4x, cardGrid.row2y, cardGrid.cardWidth, cardGrid.cardLength);
-	//card data
-	if (playSurface[10].quantity === 1) {
-	  var cardImage11 = new Image();
-	  cardImage11.onload = function() {  
-		ctx.drawImage(cardImage11, cardGrid.col4x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos3 - cardGrid.padx);
-	  };
-	  cardImage11.src = displayGraphic(playSurface,10);
-	} else if (playSurface[10].quantity === 2) {
-		var cardImage11 = new Image();
-		cardImage11.onload = function() {  
-		  ctx.drawImage(cardImage11, cardGrid.col4x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos2 - cardGrid.padx);
-		  ctx.drawImage(cardImage11, cardGrid.col4x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos4 - cardGrid.padx);
-		};
-		cardImage11.src = displayGraphic(playSurface,10);
-	} else {
-		var cardImage11 = new Image();
-		  cardImage11.onload = function() {  
-			ctx.drawImage(cardImage11, cardGrid.col4x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos1 - cardGrid.padx);
-			ctx.drawImage(cardImage11, cardGrid.col4x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos3 - cardGrid.padx);
-			ctx.drawImage(cardImage11, cardGrid.col4x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos5 - cardGrid.padx);
-		  };	
-		  cardImage11.src = displayGraphic(playSurface,10);
-	};
+		if (displayed.card11 === true) { 
+			drawCardFrame(selected.card11, cardGrid.col4x, cardGrid.row2y, cardGrid.cardWidth, cardGrid.cardLength);
+			let cardImage11 = new Image();
+			numberOfShapes(playSurface[10].quantity, cardImage11, cardGrid.col4x, cardGrid.row2y, cardGrid.cardWidth, cardGrid.cardLength, 10);
+		}
   };
 			
   cardTwelve = function() {
-	//drawing the card frame
-	drawCardFrame(selected.card12, cardGrid.col4x, cardGrid.row3y, cardGrid.cardWidth, cardGrid.cardLength);
-	//card data
-	if (playSurface[11].quantity === 1) {
-	  var cardImage12 = new Image();
-	  cardImage12.onload = function() {  
-		ctx.drawImage(cardImage12, cardGrid.col4x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos3 - cardGrid.padx);
-	  };
-      cardImage12.src = displayGraphic(playSurface,11);
-	} else if (playSurface[11].quantity === 2) {
-		var cardImage12 = new Image();
-		cardImage12.onload = function() {  
-		  ctx.drawImage(cardImage12, cardGrid.col4x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos2 - cardGrid.padx);
-		  ctx.drawImage(cardImage12, cardGrid.col4x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos4 - cardGrid.padx);
-		};
-		cardImage12.src = displayGraphic(playSurface,11);
-	} else {
-		var cardImage12 = new Image();
-		cardImage12.onload = function() {  
-		  ctx.drawImage(cardImage12, cardGrid.col4x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos1 - cardGrid.padx);
-		  ctx.drawImage(cardImage12, cardGrid.col4x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos3 - cardGrid.padx);
-		  ctx.drawImage(cardImage12, cardGrid.col4x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos5 - cardGrid.padx);
-		};	
-		cardImage12.src = displayGraphic(playSurface,11);
-	};
+		if (displayed.card12 === true) { 
+			drawCardFrame(selected.card12, cardGrid.col4x, cardGrid.row3y, cardGrid.cardWidth, cardGrid.cardLength);
+			let cardImage12 = new Image();
+			numberOfShapes(playSurface[11].quantity, cardImage12, cardGrid.col4x, cardGrid.row3y, cardGrid.cardWidth, cardGrid.cardLength, 11);
+		}
   };	
 	
   cardThirteen = function() {
-	//drawing the card frame
-    drawCardFrame(selected.card13, cardGrid.col5x, cardGrid.row1y, cardGrid.cardWidth, cardGrid.cardLength);	
-	//card data
-	if (playSurface[12].quantity === 1) {
-		var cardImage13 = new Image();
-		cardImage13.onload = function() {  
-		  ctx.drawImage(cardImage13, cardGrid.col5x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos3 - cardGrid.padx);
-		};
-		cardImage13.src = displayGraphic(playSurface,12);
-	} else if (playSurface[12].quantity === 2) {
-		var cardImage13 = new Image();
-		cardImage13.onload = function() {  
-		  ctx.drawImage(cardImage13, cardGrid.col5x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos2 - cardGrid.padx);
-		  ctx.drawImage(cardImage13, cardGrid.col5x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos4 - cardGrid.padx);
-		};
-		cardImage13.src = displayGraphic(playSurface,12);
-	} else {
-		var cardImage13 = new Image();
-		cardImage13.onload = function() {  
-		  ctx.drawImage(cardImage13, cardGrid.col5x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos1 - cardGrid.padx);
-		  ctx.drawImage(cardImage13, cardGrid.col5x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos3 - cardGrid.padx);
-		  ctx.drawImage(cardImage13, cardGrid.col5x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row1y + cardGrid.pos5 - cardGrid.padx);
-		};	
-		cardImage13.src = displayGraphic(playSurface,12);
-	};
+		if (displayed.card13 === true) { 
+			drawCardFrame(selected.card13, cardGrid.col5x, cardGrid.row1y, cardGrid.cardWidth, cardGrid.cardLength);	
+			let cardImage13 = new Image();
+			numberOfShapes(playSurface[12].quantity, cardImage13, cardGrid.col5x, cardGrid.row1y, cardGrid.cardWidth, cardGrid.cardLength,12);
+		}
   };
 	
   cardFourteen = function() {
-	//drawing the card frame
-	drawCardFrame(selected.card14, cardGrid.col5x, cardGrid.row2y, cardGrid.cardWidth, cardGrid.cardLength);
-	//card data
-	if (playSurface[13].quantity === 1) {
-	  var cardImage14 = new Image();
-		cardImage14.onload = function() {  
-		  ctx.drawImage(cardImage14, cardGrid.col5x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos3 - cardGrid.padx);
-		};
-	  cardImage14.src = displayGraphic(playSurface,13);
-	} else if (playSurface[13].quantity === 2) {
-		var cardImage14 = new Image();
-		cardImage14.onload = function() {  
-		  ctx.drawImage(cardImage14, cardGrid.col5x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos2 - cardGrid.padx);
-		  ctx.drawImage(cardImage14, cardGrid.col5x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos4 - cardGrid.padx);
-		};
-		cardImage14.src = displayGraphic(playSurface,13);
-	} else {
-		var cardImage14 = new Image();
-		cardImage14.onload = function() {  
-		  ctx.drawImage(cardImage14, cardGrid.col5x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos1 - cardGrid.padx);
-		  ctx.drawImage(cardImage14, cardGrid.col5x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos3 - cardGrid.padx);
-		  ctx.drawImage(cardImage14, cardGrid.col5x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row2y + cardGrid.pos5 - cardGrid.padx);
-		};	
-		cardImage14.src = displayGraphic(playSurface,13);
-	};
+		if (displayed.card14 === true) { 
+			drawCardFrame(selected.card14, cardGrid.col5x, cardGrid.row2y, cardGrid.cardWidth, cardGrid.cardLength);
+			let cardImage14 = new Image();
+			numberOfShapes(playSurface[13].quantity, cardImage14, cardGrid.col5x, cardGrid.row2y, cardGrid.cardWidth, cardGrid.cardLength,13);
+		}
   };
 	
   cardFifteen = function () {
-	//drawing the card frame
-	drawCardFrame(selected.card15, cardGrid.col5x, cardGrid.row3y, cardGrid.cardWidth, cardGrid.cardLength);
-	//card data
-	if (playSurface[14].quantity === 1) {
-	  var cardImage15 = new Image();
-	  cardImage15.onload = function() {  
-		ctx.drawImage(cardImage15, cardGrid.col5x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos3 - cardGrid.padx);
-	  };
-	  cardImage15.src = displayGraphic(playSurface,14);
-	} else if (playSurface[14].quantity === 2) {
-		var cardImage15 = new Image();
-		cardImage15.onload = function() {  
-		  ctx.drawImage(cardImage15, cardGrid.col5x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos2 - cardGrid.padx);
-		  ctx.drawImage(cardImage15, cardGrid.col5x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos4 - cardGrid.padx);
-		};
-		cardImage15.src = displayGraphic(playSurface,14);
-	} else {
-		var cardImage15 = new Image();
-		cardImage15.onload = function() {  
-		  ctx.drawImage(cardImage15, cardGrid.col5x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos1 - cardGrid.padx);
-		  ctx.drawImage(cardImage15, cardGrid.col5x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos3 - cardGrid.padx);
-		  ctx.drawImage(cardImage15, cardGrid.col5x + cardGrid.cardWidth/2 - cardGrid.padx, cardGrid.row3y + cardGrid.pos5 - cardGrid.padx);
-		};	
-		cardImage15.src = displayGraphic(playSurface,14);
-	};
+		if (displayed.card15 === true) { 
+			drawCardFrame(selected.card15, cardGrid.col5x, cardGrid.row3y, cardGrid.cardWidth, cardGrid.cardLength);
+			let cardImage15 = new Image();
+			numberOfShapes(playSurface[14].quantity, cardImage15, cardGrid.col5x, cardGrid.row3y, cardGrid.cardWidth, cardGrid.cardLength,14);
+		}
   };
 	
-	
-//If no match in the first 12 we need three more cards.  We should do another check to see
-// if there is a match at 15.
-// This entire concept should be removed.
-// for the video portion of this game we should only display a tableu if there is a set
 // 12 cards should be the standard game, 15 an easier version of the game.
  	
   if (playSurface.length === 15) {
@@ -1309,8 +1124,7 @@ clearCard = function (x,y,w,h) {
 
 refreshScreen = function () { 
 
-  var TXG = document.getElementById("ctx").getContext("2d");
-
+	drawDeck();
 	cardOne();
 	cardTwo();	
 	cardThree();	
@@ -1328,19 +1142,6 @@ refreshScreen = function () {
 		cardFourteen();
 		cardFifteen();
 	};
-
-  TXG.beginPath();
-  TXG.fillRect(530, 88, 80 , 120);
-  TXG.clearRect(532, 90, 76 , 116);
-  TXG.fillRect(524, 94, 80 , 120);
-  TXG.clearRect(526, 96, 76 , 116);
-  TXG.fillRect(518, 100, 80 , 120);
-  TXG.clearRect(520, 102, 76 , 116);
-  TXG.fillText("Draw Deck", 530, 140);
-  TXG.fillText("Cards Left:", 530, 160);
-  TXG.fillText(playDeck.length, 530, 180); 
-  TXG.stroke();
-  TXG.closePath();
 
 };	
 // Call our Functions
