@@ -15,7 +15,6 @@ var cardGrid = {
   col2x:125,
   col3x:225,
   col4x:325,
-  col5x:425,
   row1y:50,
   row2y:190,
   row3y:330,
@@ -230,7 +229,7 @@ drawDeck = function () {
 
 endGame = function () {
   gameOverWinSFX.play();  
-  for (let i=1; i<16; i++){
+  for (let i=1; i<13; i++){
     let endgame = "card" + (i);
     hint[endgame] = false;
     selected[endgame] = false;
@@ -355,9 +354,6 @@ var selected = {
   card10:false,
   card11:false,
   card12:false,
-  card13:false,
-  card14:false,
-  card15:false,
   full:0
 };
 
@@ -374,9 +370,6 @@ var displayed = {
   card10:true,
   card11:true,
   card12:true,
-  card13:false,
-  card14:false,
-  card15:false,
   hint: true,
   submit: true,
   deck: true,
@@ -396,10 +389,7 @@ var hint = {
   card10:false,
   card11:false,
   card12:false,
-  card13:false,
-  card14:false,
-  card15:false,
-};
+  };
 
 // End Variable declaration
 
@@ -520,7 +510,7 @@ createTable = function (playDeck) {
 //isMatch is used when determining if the three selected and submitted cards are a match 
 noMatch = function (playSurface) {
   // clearing the hint data
-  for (let i=1; i<16; i++){
+  for (let i=1; i<13; i++){
     let clearHints = "card" + (i);
     hint[clearHints] = false;
   }
@@ -711,7 +701,7 @@ isMatch = function (submitted) {
           updateScore();
           gameControls.hintUsed = false;
           //clearhints and selections
-          for (let i=1; i<16; i++){
+          for (let i=1; i<13; i++){
             let clearHints = "card" + (i);
             hint[clearHints] = false;
             selected[clearHints] = false;
@@ -722,6 +712,15 @@ isMatch = function (submitted) {
           continueGame(submitted);
           submitted.length = 0;
           refreshScreen();
+  
+					if (gameControls.gameOver === true) {
+						let CTXG = document.getElementById("ctx").getContext("2d");
+  					CTXG.beginPath();
+  					CTXG.fillStyle = "black";
+  					CTXG.fillRect(10, 200, 460, 585);
+  					CTXG.closePath();
+  					console.log("gameControls.gameOver = " + gameControls.gameOver);
+  				};	
         } else {
             weHaveASet = 0;
             submitCardsRejectSFX.play();
@@ -935,7 +934,7 @@ hintButton = function (x,y) {
      	console.log("hintButton");
       gameControls.hintUsed = true;
       let gatekeeper = 0;
-      for (let i=1; i<16; i++){
+      for (let i=1; i<13; i++){
         let hints = "card" + (i);
         if (hint[hints] === true) {
           console.log(hints + ":" + hint[hints]);
@@ -1014,22 +1013,7 @@ flashHint = function(cardNumber) {
       hintX = cardGrid.col4x;
       hintY = cardGrid.row3y;
       break;
-    case 13:
-      console.log("cardThirteen");
-      hintX = cardGrid.col5x;
-      hintY = cardGrid.row1y;
-      break;
-    case 14:
-      console.log("cardFourteen");
-      hintX = cardGrid.col5x;
-      hintY = cardGrid.row2y;
-      break;
-    case 15:
-      console.log("cardFifteen");
-      hintX = cardGrid.col5x;
-      hintY = cardGrid.row3y;
-      break;
-  }
+    }
   
   var HCTX = document.getElementById("ctx").getContext("2d");
   
@@ -1058,7 +1042,7 @@ clearSelectionButton = function (x,y) {
 };
 
 clearSelections = function () {
-	for (let i=1; i<16; i++){
+	for (let i=1; i<13; i++){
     let clearSelections = "card" + (i);
     selected[clearSelections] = false;
     selected.full = 0;
@@ -1496,40 +1480,6 @@ createCard = function (playSurface){
     }
   };  
   
-  cardThirteen = function() {
-    if (displayed.card13 === true) { 
-      drawCardFrame(selected.card13, cardGrid.col5x, cardGrid.row1y, cardGrid.cardWidth, cardGrid.cardLength);  
-      let cardImage13 = new Image();
-      numberOfShapes(playSurface[12].quantity, cardImage13, cardGrid.col5x, cardGrid.row1y, cardGrid.cardWidth, cardGrid.cardLength,12);
-    }
-  };
-  
-  cardFourteen = function() {
-    if (displayed.card14 === true) { 
-      drawCardFrame(selected.card14, cardGrid.col5x, cardGrid.row2y, cardGrid.cardWidth, cardGrid.cardLength);
-      let cardImage14 = new Image();
-      numberOfShapes(playSurface[13].quantity, cardImage14, cardGrid.col5x, cardGrid.row2y, cardGrid.cardWidth, cardGrid.cardLength,13);
-    }
-  };
-  
-  cardFifteen = function () {
-    if (displayed.card15 === true) { 
-      drawCardFrame(selected.card15, cardGrid.col5x, cardGrid.row3y, cardGrid.cardWidth, cardGrid.cardLength);
-      let cardImage15 = new Image();
-      numberOfShapes(playSurface[14].quantity, cardImage15, cardGrid.col5x, cardGrid.row3y, cardGrid.cardWidth, cardGrid.cardLength,14);
-    }
-  };
-  
-// 12 cards should be the standard game, 15 an easier version of the game.
-  
-  if (playSurface.length === 15) {
-    displayed.card13 = "True";
-    displayed.card14 = "True";
-    displayed.card15 = "True";
-    cardThirteen();
-    cardFourteen();
-    cardFifteen();
-  };
 
 };  // end of create card function
 
