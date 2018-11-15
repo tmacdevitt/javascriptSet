@@ -1,7 +1,6 @@
 <!DOCTYPE html> <html> <body>
 <canvas id = "ctx" width="480" height="640" style="border:1px solid #000000;"></canvas>
 <script>
-
 // Variable declarations
 var mouse = {
    x:undefined,
@@ -29,7 +28,7 @@ var cardGrid = {
 };
 var cardsRemaining = 69;
 //SFXs
-
+{
 var selectCardSFX = new Audio();
 selectCardSFX.src = 'resources/SFX/selectCard.mp3';
 
@@ -75,22 +74,22 @@ backgroundMusic1.src = 'resources/SFX/backgroundMusic1.mp3';
 
 var backgroundMusic2 = new Audio();
 backgroundMusic2.src = 'resources/SFX/backgroundMusic2.mp3';
-
+}
 //background music looping
 backgroundMusic2.addEventListener('ended', function() {
   	this.currentTime = 0;
   	this.play();
   }, false);
-  backgroundMusic2.loop = true;
+backgroundMusic2.loop = true;
 backgroundMusic2.play();
 backgroundMusic2.volume = .5;
-      
-
+ 
 var gameControls = {
 	timer:60,
 	gameOver:false,
 	hintUsed:false,
-	timesUp:false
+	timesUp:false,
+	gamePaused:false
 	};
 var uiElements = {
   bannerX:100,
@@ -123,11 +122,11 @@ var uiElements = {
   quitButtonTextX:446,
   quitButtonTextY:25,
   
-  submitButtonX:95,
+  submitButtonX:25,
   submitButtonY:550,
   submitButtonW:105,
   submitButtonL:50,
-  submitButtonTextX:118,
+  submitButtonTextX:40,
   submitButtonTextY:580,
    
   hintButtonX:165,
@@ -137,6 +136,13 @@ var uiElements = {
   hintButtonTextX:200,
   hintButtonTextY:510,
   
+  settingsButtonX:165,
+  settingsButtonY:550,
+  settingsButtonW:105,
+  settingsButtonL:50,
+  settingsButtonTextX:180,
+  settingsButtonTextY:580,
+  
   clearSelectionButtonX:25,
   clearSelectionButtonY:480,
   clearSelectionButtonW:105,
@@ -144,12 +150,26 @@ var uiElements = {
   clearSelectionButtonTextX:30,
   clearSelectionButtonTextY:510,
   
-  rulesX:10,
+  rulesX:80,
   rulesY:10,
-  rulesW:10,
-  rulesL:10,
-  rulesLine1X:10,
-  rulesLine1Y:10,
+  rulesW:300,
+  rulesL:600,
+  rulesLine1X:160,
+  rulesLine1Y:100,
+  
+  returnButtonX:180,
+  returnButtonY:550,
+  returnButtonW:160,
+  returnButtonL:50,
+  returnButtonTextX:200,
+  returnButtonTextY:580,
+  
+  reloadButtonX:120,
+  reloadButtonY:360,
+  reloadButtonW:240,
+  reloadButtonL:60,
+  reloadButtonTextX:150,
+  reloadButtonTextY:400,
   
   pad:5
 
@@ -240,6 +260,11 @@ endGame = function () {
   displayed.submit = false;
   displayed.clearSubmit = false;
   displayed.deck = false;
+  displayed.settings = false;
+  //displayed.timer = false;
+  displayed.oneMore = true;
+  
+  uiElements.bannerText = "                    Play Again!!";
   
   let CTXG = document.getElementById("ctx").getContext("2d");
   CTXG.beginPath();
@@ -247,17 +272,31 @@ endGame = function () {
   CTXG.stroke();
   CTXG.closePath();
   CTXG.beginPath();
-  CTXG.fillRect(10, 45, 460, 585);
+  CTXG.fillRect(10, 45, 460, 560);
   CTXG.font="30px Arial";
   CTXG.fillStyle = "white";
   CTXG.fillText("GAME OVER!!", 150, 100 );
   CTXG.stroke();
   CTXG.fillStyle = "black";
-  CTXG.fillRect(10, 200, 460, 585);
+  CTXG.fillRect(10, 200, 460, 560);
+  CTXG.lineWidth = "10";
+  CTXG.strokeStyle = "green";
+  CTXG.rect(uiElements.reloadButtonX, uiElements.reloadButtonY, uiElements.reloadButtonW, uiElements.reloadButtonL);
+  CTXG.stroke();  
+  CTXG.closePath();
+  CTXG.beginPath();
+  CTXG.font="24px Arial";
+  CTXG.fillStyle = "white";
+  CTXG.fillText("Another Round?", uiElements.reloadButtonTextX, uiElements.reloadButtonTextY );
+  CTXG.stroke();
   CTXG.closePath();
   
+     
+  //One More Game? Button
   gameControls.gameOver = true;
+  
 };
+
 
 score = function () {
   var SCORE = document.getElementById("ctx").getContext("2d");
@@ -281,62 +320,68 @@ score = function () {
 };
 
 timer = function () {
-  var TIMER = document.getElementById("ctx").getContext("2d");
-  TIMER.beginPath();
-  TIMER.clearRect(uiElements.timerX, uiElements.timerY, uiElements.timerW, uiElements.timerL);
-  TIMER.stroke();
-  TIMER.closePath();
-  TIMER.beginPath();
-	TIMER.arc(uiElements.timerTextX +10, uiElements.timerTextY - 5, 17, 0, 2 * Math.PI, false);
-  TIMER.fillStyle = 'white';
-  TIMER.fill();
-  TIMER.lineWidth = 3;
-  TIMER.strokeStyle = 'black';
-  TIMER.stroke();
-  TIMER.font="20px Arial";
-  TIMER.fillStyle = 'red';
-  if (gameControls.gameOver === false) {
-  	if (uiElements.timerText > 9) {
-  		TIMER.fillText(uiElements.timerText, uiElements.timerTextX - 1, uiElements.timerTextY);
-  	} else {
-  			TIMER.fillText(uiElements.timerText, uiElements.timerTextX + 5, uiElements.timerTextY);
-  	}
-  } else {
-      TIMER.fillText("", uiElements.timerTextX, uiElements.timerTextY);
-  };
-  TIMER.stroke();
-  TIMER.fillStyle = 'black';
-  TIMER.closePath();
-  if (uiElements.timerText === 3) {
-  	timer2SFX.play();
-  	timer2SFX.volume = .5;
+  if (displayed.timer === true) {
+	 var TIMER = document.getElementById("ctx").getContext("2d");
+	 TIMER.beginPath();
+	 TIMER.clearRect(uiElements.timerX, uiElements.timerY, uiElements.timerW, uiElements.timerL);
+	 TIMER.stroke();
+	 TIMER.closePath();
+	 TIMER.beginPath();
+	 TIMER.arc(uiElements.timerTextX +10, uiElements.timerTextY - 5, 17, 0, 2 * Math.PI, false);
+	 TIMER.fillStyle = 'white';
+	 TIMER.fill();
+	 TIMER.lineWidth = 3;
+	 TIMER.strokeStyle = 'black';
+	 TIMER.stroke();
+	 TIMER.font="20px Arial";
+	 TIMER.fillStyle = 'red';
+	 if (gameControls.gameOver === false) {
+		 if (uiElements.timerText > 9) {
+			 TIMER.fillText(uiElements.timerText, uiElements.timerTextX - 1, uiElements.timerTextY);
+		 } else {
+				 TIMER.fillText(uiElements.timerText, uiElements.timerTextX + 5, uiElements.timerTextY);
+		 }
+	 } else {
+			 TIMER.fillText("", uiElements.timerTextX, uiElements.timerTextY);
+	 };
+	 TIMER.stroke();
+	 TIMER.fillStyle = 'black';
+	 TIMER.closePath();
+	 if (uiElements.timerText === 3) {
+		 timer2SFX.play();
+		 timer2SFX.volume = .5;
+	 }
+	 if (uiElements.timerText === 0) {
+		 timer0SFX.play();
+		 timer0SFX.volume = .5;
 
+	 }
   }
-  if (uiElements.timerText === 0) {
-  	timer0SFX.play();
-  	timer0SFX.volume = .5;
-
-  }
-
 };
 
 updateTimer = function () {
   console.log("timer started");
-  if (gameControls.timer === 0) {
-  	gameControls.timer = 60;
-  	gameControls.timesUp = true;
-  	removeCards();
-  	}
-  if (gameControls.gameOver === false) {
-	  var countdownTimer = setInterval(function(){
-		gameControls.timer --;
-		uiElements.timerText = gameControls.timer;
-		timer();
-		if (gameControls.timer <= 0 && gameControls.gameOver === false){ 
-			clearInterval(countdownTimer);
-			updateTimer();
-		}
-		},1000);
+  if (gameControls.gamePaused === false){
+	  if (gameControls.timer === 0) {
+		  gameControls.timer = 60;
+		  gameControls.timesUp = true;
+		  removeCards();
+	  }
+	  if (gameControls.gameOver === false && gameControls.gamePaused === false) {
+		  var countdownTimer = setInterval(function(){
+		    if (gameControls.gamePaused === false) {
+			    gameControls.timer --;
+		    }
+		    uiElements.timerText = gameControls.timer;
+		    timer();
+		    if (gameControls.timer <= 0 && gameControls.gameOver === false && gameControls.gamePaused === false){ 
+			    clearInterval(countdownTimer);
+			    if (gameControls.gamePaused === false) {
+			    	updateTimer();
+					}
+		    }
+		  },1000);
+	  }
 	}
 }
 
@@ -373,7 +418,12 @@ var displayed = {
   hint: true,
   submit: true,
   deck: true,
-  clearSubmit: true
+  clearSubmit: true,
+  settings: true,
+  banner: true,
+  timer: true,
+  returnButton: false,
+  oneMore: false
 };
 
 var hint = {
@@ -404,7 +454,10 @@ window.addEventListener("click", function(event) {
   submitButton(mouse.x, mouse.y, playSurface);
   quitButton(mouse.x, mouse.y);
   clearSelectionButton(mouse.x, mouse.y);
-   
+  settingsButton(mouse.x, mouse.y);
+  //if(displayed.returnButton === true){
+  //	returnButton(mouse.x, mouse.y);
+  //}
   whichCards(mouse.x, mouse.y, width, length);        
   //if there is a click fire off all these functions which represent all off the selectable
   // elements in the game
@@ -423,6 +476,9 @@ window.addEventListener("click", function(event) {
   hintButton(mouse.x, mouse.y);
   drawDeck();
   drawBanner();
+  if (displayed.oneMore === true) {
+    reloadGame(mouse.x,mouse.y);
+  }  
 });
 
 updateScore = function () {
@@ -590,7 +646,7 @@ noMatch = function (playSurface) {
 }; //end of the function
 
 submitButton = function (x,y, playSurface) {
-  if (displayed.submit === true) {
+  if (displayed.submit === true && gameControls.gamePaused === false) {
     if ((x >= uiElements.submitButtonX - uiElements.pad && x <= uiElements.submitButtonX + uiElements.submitButtonW + (uiElements.pad * 2)) && (y >= uiElements.submitButtonY - uiElements.pad && y <= uiElements.submitButtonY + uiElements.submitButtonL + (uiElements.pad * 2))) {
       console.log("submitButton");
       if (selected.full === 3) {
@@ -620,6 +676,105 @@ submitButton = function (x,y, playSurface) {
   }
 };
 
+reloadGame = function (x,y) {
+  if ((x >= uiElements.reloadButtonX - uiElements.pad && x <= uiElements.reloadButtonX + uiElements.reloadButtonW + (uiElements.pad * 2)) && (y >= uiElements.reloadButtonY - uiElements.pad && y <= uiElements.reloadButtonY + uiElements.reloadButtonL + (uiElements.pad * 2))  && displayed.oneMore === true) {
+    // SFX for Button Click 
+   	console.log("reload Game");
+    window.location.reload(true);
+  }
+};
+
+DrawSettingsButton = function () {
+    
+  var CTX = document.getElementById("ctx").getContext("2d");
+  
+  CTX.beginPath();
+  CTX.clearRect(uiElements.settingsButtonX, uiElements.settingsButtonY, uiElements.settingsButtonW, uiElements.settingsButtonL);
+  CTX.lineWidth=6;
+  CTX.font="20px Arial";
+  CTX.strokeStyle="Black";
+  CTX.strokeRect(uiElements.settingsButtonX, uiElements.settingsButtonY, uiElements.settingsButtonW, uiElements.settingsButtonL);
+  CTX.fillText("Settings", uiElements.settingsButtonTextX, uiElements.settingsButtonTextY);
+  CTX.stroke();
+  CTX.closePath();
+}
+
+settingsButton = function (x,y) {
+  if ((x >= uiElements.settingsButtonX - uiElements.pad && x <= uiElements.settingsButtonX + uiElements.settingsButtonW + (uiElements.pad * 2)) && (y >= uiElements.settingsButtonY - uiElements.pad && y <= uiElements.settingsButtonY + uiElements.settingsButtonL + (uiElements.pad * 2))  && displayed.settings === true) {
+    // SFX for Button Click 
+   	console.log("settingsButton");
+   	pauseGame();
+   	displayRules();  	
+  }
+};
+
+drawReturnButton = function () {
+	if (displayed.returnButton === true) {  
+	 var CTX = document.getElementById("ctx").getContext("2d");
+	
+	 CTX.beginPath();
+	 CTX.clearRect(uiElements.settingsButtonX, uiElements.settingsButtonY, uiElements.settingsButtonW, uiElements.settingsButtonL);
+	 CTX.lineWidth=6;
+	 CTX.font="20px Arial";
+	 CTX.strokeStyle="Blue";
+	 CTX.strokeRect(uiElements.returnButtonX, uiElements.returnButtonY, uiElements.returnButtonW, uiElements.returnButtonL);
+	 CTX.fillText("Back To Game", uiElements.returnButtonTextX, uiElements.returnButtonTextY);
+	 CTX.stroke();
+	 CTX.closePath();
+	}
+}
+
+returnButton = function (x,y) {
+  if ((x >= uiElements.returnButtonX - uiElements.pad && x <= uiElements.returnButtonX + uiElements.returnButtonW + (uiElements.pad * 2)) && (y >= uiElements.returnButtonY - uiElements.pad && y <= uiElements.returnButtonY + uiElements.returnButtonL + (uiElements.pad * 2))  && displayed.returnButton === true) {
+    var WIPE = document.getElementById("ctx").getContext("2d");
+		WIPE.clearRect(5,5,420,600);
+		WIPE.clearRect(50,50,450,580);	
+  	WIPE.beginPath();  	
+      // SFX for Button Click 
+   	console.log("return to Game Button");
+   	unPauseGame();
+   	//refreshScreen();
+  }
+};
+
+pauseGame = function () {
+	if (gameControls.gamePaused === false){
+		gameControls.gamePaused = true;
+		for (let i=1; i<13; i++){
+    	let pausing = "card" + (i);
+    	displayed[pausing] = false;
+  	};
+  displayed.hint = false;
+  displayed.submit = false;
+  displayed.clearSubmit = false;
+  displayed.deck = false;
+  displayed.banner = false;
+  displayed.timer = false;
+  displayed.settings = false;
+	}
+	refreshScreen();
+}
+
+unPauseGame = function () {
+	if (gameControls.gamePaused === true){
+		gameControls.gamePaused = false;
+		for (let i=1; i<13; i++){
+    	let pausing = "card" + (i);
+    	displayed[pausing] = true;
+  	};
+  displayed.hint = true;
+  displayed.submit = true;
+  displayed.clearSubmit = true;
+  displayed.settings = true;
+  
+  displayed.deck = true;
+  displayed.banner = true;
+  displayed.timer = true;
+	}
+	createGameUI();
+	refreshScreen();
+}
+
 flashSubmitButton = function () {
     
   var CTX = document.getElementById("ctx").getContext("2d");
@@ -645,7 +800,7 @@ flashSubmitButton = function () {
     CTX.stroke();
     CTX.closePath();
   };
-  if (gameControls.gameOver === false) {
+  if (playDeck.length > 3) {
   	setTimeout(restoreSubmitButton, 180);
   }
 };
@@ -760,10 +915,10 @@ dealCards = function(submitted) {
   playSurface[slot3] = playDeck.pop();
   playSurface[slot3].slot = slot3;
 };
-  
-    
-  
+   
 startGame = function (playSurface, playDeck){
+  
+  DrawSettingsButton();
   
 	backgroundMusic2.addEventListener('ended', function() {
   	this.currentTime = 0;
@@ -846,19 +1001,19 @@ drawCards = function (playSurface) {
 };  
 
 drawBanner = function () {
-  var CTXG = document.getElementById("ctx").getContext("2d");
-  //the instruction banner
-  CTXG.clearRect(uiElements.bannerX, uiElements.bannerY, uiElements.bannerW, uiElements.bannerL);
-  CTXG.beginPath();
-  CTXG.strokeStyle="Purple";
-  CTXG.lineWidth=4;
-  CTXG.rect(uiElements.bannerX, uiElements.bannerY, uiElements.bannerW, uiElements.bannerL);
-  CTXG.font="14px Arial";
-  CTXG.fillText(uiElements.bannerText, uiElements.bannerTextX, uiElements.bannerTextY);
-  CTXG.stroke();
-  CTXG.closePath();
-
-
+  if (displayed.banner === true) {
+  	var CTXG = document.getElementById("ctx").getContext("2d");
+  	//the instruction banner
+  	CTXG.clearRect(uiElements.bannerX, uiElements.bannerY, uiElements.bannerW, uiElements.bannerL);
+  	CTXG.beginPath();
+  	CTXG.strokeStyle="Purple";
+  	CTXG.lineWidth=4;
+  	CTXG.rect(uiElements.bannerX, uiElements.bannerY, uiElements.bannerW, uiElements.bannerL);
+  	CTXG.font="14px Arial";
+  	CTXG.fillText(uiElements.bannerText, uiElements.bannerTextX, uiElements.bannerTextY);
+  	CTXG.stroke();
+  	CTXG.closePath();
+	}
 };
 
 createGameUI = function (){
@@ -924,11 +1079,12 @@ quitButton = function (x,y) {
   //location.reload(true);  
   endGame();
   console.log("Game ended by quit button");
+
   }
 };
 
 hintButton = function (x,y) {
-  if (displayed.hint === true) {
+  if (displayed.hint === true && gameControls.gamePaused === false) {
     if ((x >= uiElements.hintButtonX - uiElements.pad && x <= uiElements.hintButtonX + uiElements.hintButtonW + (uiElements.pad * 2)) && (y >= uiElements.hintButtonY - uiElements.pad && y <= uiElements.hintButtonY + uiElements.hintButtonL + (uiElements.pad * 2))) {
       hintSFX.play();
      	console.log("hintButton");
@@ -1031,7 +1187,7 @@ flashHint = function(cardNumber) {
 };
 
 clearSelectionButton = function (x,y) {
-  if (displayed.clearSubmit === true) {
+  if (displayed.clearSubmit === true && gameControls.gamePaused === false) {
     if ((x >= uiElements.clearSelectionButtonX - uiElements.pad && x <= uiElements.clearSelectionButtonX + uiElements.clearSelectionButtonW + (uiElements.pad * 2)) && (y >= uiElements.clearSelectionButtonY - uiElements.pad && y <= uiElements.clearSelectionButtonY + uiElements.clearSelectionButtonL + (uiElements.pad * 2))) {
       console.log("clearSelectionButton");
       clearCardsSFX.play();
@@ -1157,7 +1313,7 @@ displayGraphic = function (playSurface, i) {
 //Determining which cards are selected.
 whichCards = function(x,y,cardW,cardL,full){
   
-  if (((x >= cardGrid.col1x && x <= cardGrid.col1x + cardW) && (y >= cardGrid.row1y && y <= cardGrid.row1y + cardL)) && displayed.card1 === true) {
+  if (((x >= cardGrid.col1x && x <= cardGrid.col1x + cardW) && (y >= cardGrid.row1y && y <= cardGrid.row1y + cardL)) && displayed.card1 === true && gameControls.gamePaused === false) {
     console.log("card1");
     if (selected.card1 === false && selected.full < 3) {
       selected.card1 = true;
@@ -1170,7 +1326,7 @@ whichCards = function(x,y,cardW,cardL,full){
     } else { 
     		selectCardFullSFX.play();
     }
-  } else if (((x >= cardGrid.col1x && x <= cardGrid.col1x + cardW) && (y >= cardGrid.row2y && y <= cardGrid.row2y + cardL)) && displayed.card2 === true) {
+  } else if (((x >= cardGrid.col1x && x <= cardGrid.col1x + cardW) && (y >= cardGrid.row2y && y <= cardGrid.row2y + cardL)) && displayed.card2 === true && gameControls.gamePaused === false) {
       console.log("card2");
       if (selected.card2 === false && selected.full < 3) {
         selected.card2 = true;
@@ -1183,7 +1339,7 @@ whichCards = function(x,y,cardW,cardL,full){
 	    } else { 
     		selectCardFullSFX.play();
   	  }
-  } else if (((x >= cardGrid.col1x && x <= cardGrid.col1x + cardW) && (y >= cardGrid.row3y && y <= cardGrid.row3y + cardL)) && displayed.card3 === true) {
+  } else if (((x >= cardGrid.col1x && x <= cardGrid.col1x + cardW) && (y >= cardGrid.row3y && y <= cardGrid.row3y + cardL)) && displayed.card3 === true && gameControls.gamePaused === false) {
       console.log("card3");
       if (selected.card3 === false && selected.full < 3) {
         selected.card3 = true;
@@ -1196,7 +1352,7 @@ whichCards = function(x,y,cardW,cardL,full){
      } else { 
     		selectCardFullSFX.play();
      }
-  } else if (((x >= cardGrid.col2x && x <= cardGrid.col2x + cardW) && (y >= cardGrid.row1y && y <= cardGrid.row1y + cardL)) && displayed.card4 === true) {
+  } else if (((x >= cardGrid.col2x && x <= cardGrid.col2x + cardW) && (y >= cardGrid.row1y && y <= cardGrid.row1y + cardL)) && displayed.card4 === true && gameControls.gamePaused === false) {
       console.log("card4");
       if (selected.card4 === false && selected.full < 3) {
         selected.card4 = true;
@@ -1209,7 +1365,7 @@ whichCards = function(x,y,cardW,cardL,full){
      } else { 
     		selectCardFullSFX.play();
      }
-  } else if (((x >= cardGrid.col2x && x <= cardGrid.col2x + cardW) && (y >= cardGrid.row2y && y <= cardGrid.row2y + cardL)) && displayed.card5 === true) {
+  } else if (((x >= cardGrid.col2x && x <= cardGrid.col2x + cardW) && (y >= cardGrid.row2y && y <= cardGrid.row2y + cardL)) && displayed.card5 === true && gameControls.gamePaused === false) {
       console.log("card5");
       if (selected.card5 === false && selected.full < 3) {
         selected.card5 = true;
@@ -1222,7 +1378,7 @@ whichCards = function(x,y,cardW,cardL,full){
       } else { 
     		selectCardFullSFX.play();
 	    }
-  } else if (((x >= cardGrid.col2x && x <= cardGrid.col2x + cardW) && (y >= cardGrid.row3y && y <= cardGrid.row3y + cardL)) && displayed.card6 === true) {
+  } else if (((x >= cardGrid.col2x && x <= cardGrid.col2x + cardW) && (y >= cardGrid.row3y && y <= cardGrid.row3y + cardL)) && displayed.card6 === true && gameControls.gamePaused === false) {
       console.log("card6");
       if (selected.card6 === false && selected.full < 3) {
         selected.card6 = true;
@@ -1235,7 +1391,7 @@ whichCards = function(x,y,cardW,cardL,full){
 	    } else { 
     		selectCardFullSFX.play();
   	  }
-  } else if (((x >= cardGrid.col3x && x <= cardGrid.col3x + cardW) && (y >= cardGrid.row1y && y <= cardGrid.row1y + cardL)) && displayed.card7 === true) {
+  } else if (((x >= cardGrid.col3x && x <= cardGrid.col3x + cardW) && (y >= cardGrid.row1y && y <= cardGrid.row1y + cardL)) && displayed.card7 === true && gameControls.gamePaused === false) {
       console.log("card7");
       if (selected.card7 === false && selected.full < 3) {
         selected.card7 = true;
@@ -1248,7 +1404,7 @@ whichCards = function(x,y,cardW,cardL,full){
 	    } else { 
     		selectCardFullSFX.play();
   	  }
-  } else if (((x >= cardGrid.col3x && x <= cardGrid.col3x + cardW) && (y >= cardGrid.row2y && y <= cardGrid.row2y + cardL)) && displayed.card8 === true) {
+  } else if (((x >= cardGrid.col3x && x <= cardGrid.col3x + cardW) && (y >= cardGrid.row2y && y <= cardGrid.row2y + cardL)) && displayed.card8 === true && gameControls.gamePaused === false) {
       console.log("card8");
       if (selected.card8 === false && selected.full < 3) {
         selected.card8 = true;
@@ -1261,7 +1417,7 @@ whichCards = function(x,y,cardW,cardL,full){
 	    } else { 
     		selectCardFullSFX.play();
   	  }
-  } else if (((x >= cardGrid.col3x && x <= cardGrid.col3x + cardW) && (y >= cardGrid.row3y && y <= cardGrid.row3y + cardL)) && displayed.card9 === true) {
+  } else if (((x >= cardGrid.col3x && x <= cardGrid.col3x + cardW) && (y >= cardGrid.row3y && y <= cardGrid.row3y + cardL)) && displayed.card9 === true && gameControls.gamePaused === false) {
       console.log("card9");
       if (selected.card9 === false && selected.full < 3) {
         selected.card9 = true;
@@ -1274,7 +1430,7 @@ whichCards = function(x,y,cardW,cardL,full){
 	    } else { 
     		selectCardFullSFX.play();
   	  }
-  } else if (((x >= cardGrid.col4x && x <= cardGrid.col4x + cardW) && (y >= cardGrid.row1y && y <= cardGrid.row1y + cardL)) && displayed.card10 === true) {
+  } else if (((x >= cardGrid.col4x && x <= cardGrid.col4x + cardW) && (y >= cardGrid.row1y && y <= cardGrid.row1y + cardL)) && displayed.card10 === true && gameControls.gamePaused === false) {
       console.log("card10");
       if (selected.card10 === false && selected.full < 3) {
         selected.card10 = true;
@@ -1287,7 +1443,7 @@ whichCards = function(x,y,cardW,cardL,full){
 	    } else { 
     		selectCardFullSFX.play();
   	  }
-  } else if (((x >= cardGrid.col4x && x <= cardGrid.col4x + cardW) && (y >= cardGrid.row2y && y <= cardGrid.row2y + cardL)) && displayed.card11 === true)  {
+  } else if (((x >= cardGrid.col4x && x <= cardGrid.col4x + cardW) && (y >= cardGrid.row2y && y <= cardGrid.row2y + cardL)) && displayed.card11 === true && gameControls.gamePaused === false)  {
       console.log("card11");
       if (selected.card11 === false && selected.full < 3) {
         selected.card11 = true;
@@ -1300,7 +1456,7 @@ whichCards = function(x,y,cardW,cardL,full){
 	    } else { 
     		selectCardFullSFX.play();
   	  }
-  } else if (((x >= cardGrid.col4x && x <= cardGrid.col4x + cardW) && (y >= cardGrid.row3y && y <= cardGrid.row3y + cardL)) && displayed.card12 === true)  {
+  } else if (((x >= cardGrid.col4x && x <= cardGrid.col4x + cardW) && (y >= cardGrid.row3y && y <= cardGrid.row3y + cardL)) && displayed.card12 === true && gameControls.gamePaused === false)  {
       console.log("card12");
       if (selected.card12 === false && selected.full < 3) {
         selected.card12 = true;
@@ -1499,8 +1655,11 @@ refreshScreen = function () {
   cardEleven();
   cardTwelve();
   drawBanner();
-  flashSubmitButton();
-  
+  if (gameControls.gameOver === false) {
+  	if (gameControls.paused === false){
+  		flashSubmitButton();
+  	}
+  }
 };  
 // Call our Functions
 //Create the deck
@@ -1543,15 +1702,18 @@ updateTimer();
 displayRules = function () {
  
   var RULES = document.getElementById("ctx").getContext("2d");
-
+	RULES.clearRect(5,5,420,600);
+	RULES.clearRect(50,50,450,580);	
   RULES.beginPath();
-  RULES.strokeStyle="Blue";
+  RULES.strokeStyle="Black";
   RULES.lineWidth=6;
   RULES.rect(uiElements.rulesX, uiElements.rulesY, uiElements.rulesW, uiElements.rulesL);
   RULES.font="20px Arial";
-  RULES.fillText("HOW TO PLAY", uiElements.rulesLine1X, uiElements.rulesLine1Y);
+  RULES.fillText("Settings Panel", uiElements.rulesLine1X, uiElements.rulesLine1Y);
   RULES.stroke();
   RULES.closePath();
+  displayed.returnButton = true;
+  drawReturnButton();
 
 };
 
