@@ -666,7 +666,9 @@ submitButton = function (x,y, playSurface) {
         if (gameControls.gameOver === false) {
           flashSubmitButton();
           isMatch(submitted);  
-          refreshScreen();
+          if (gameControls.gameOver === false){
+            refreshScreen();
+          }
         }
       } else {
    		    submitCardsRejectSFX.play();
@@ -866,15 +868,12 @@ isMatch = function (submitted) {
           dealCards(submitted);
           continueGame(submitted);
           submitted.length = 0;
-          refreshScreen();
-  
-					if (gameControls.gameOver === true) {
-						let CTXG = document.getElementById("ctx").getContext("2d");
-  					CTXG.beginPath();
-  					CTXG.fillStyle = "black";
-  					CTXG.fillRect(10, 200, 460, 585);
-  					CTXG.closePath();
-  					console.log("gameControls.gameOver = " + gameControls.gameOver);
+          if (gameControls.gameOver === false) {
+            refreshScreen();
+          }
+					if (cardsRemaining === 0) {
+					  endGame();
+						console.log("Game ended due to no more cards");
   				};	
         } else {
             weHaveASet = 0;
