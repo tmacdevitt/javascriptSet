@@ -91,6 +91,7 @@ var gameControls = {
 	timesUp:false,
 	gamePaused:false
 	};
+	
 var uiElements = {
   bannerX:100,
   bannerY:10,
@@ -108,13 +109,14 @@ var uiElements = {
   scoreTextY:29,
   scoreText:0,
   
-  timerX:360,
+  timerX:350,
   timerY:10,
   timerW:60,
   timerL:25,
-  timerTextX:380,
+  timerTextX:370,
   timerTextY:29,
   timerText:60,
+  
   quitButtonX:440,
   quitButtonY:10,
   quitButtonW:20,
@@ -151,17 +153,17 @@ var uiElements = {
   clearSelectionButtonTextY:510,
   
   rulesX:80,
-  rulesY:10,
+  rulesY:60,
   rulesW:300,
-  rulesL:600,
+  rulesL:570,
   rulesLine1X:160,
   rulesLine1Y:100,
   
-  returnButtonX:180,
+  returnButtonX:150,
   returnButtonY:550,
   returnButtonW:160,
   returnButtonL:50,
-  returnButtonTextX:200,
+  returnButtonTextX:165,
   returnButtonTextY:580,
   
   reloadButtonX:120,
@@ -174,6 +176,62 @@ var uiElements = {
   pad:5
 
 };
+
+var selected = {
+  card1:false,
+  card2:false,
+  card3:false,
+  card4:false,
+  card5:false,
+  card6:false,
+  card7:false,
+  card8:false,
+  card9:false,
+  card10:false,
+  card11:false,
+  card12:false,
+  full:0
+};
+
+var displayed = {
+  card1: true,
+  card2: true,
+  card3: true,
+  card4: true,
+  card5: true,
+  card6: true,
+  card7: true,
+  card8: true,
+  card9: true,
+  card10:true,
+  card11:true,
+  card12:true,
+  hint: true,
+  submit: true,
+  deck: true,
+  clearSubmit: true,
+  settings: true,
+  banner: true,
+  timer: true,
+  returnButton: false,
+  oneMore: false
+};
+
+var hint = {
+  card1: false,
+  card2: false,
+  card3: false,
+  card4: false,
+  card5: false,
+  card6: false,
+  card7: false,
+  card8: false,
+  card9: false,
+  card10:false,
+  card11:false,
+  card12:false,
+  };
+
 // drawDeck has a lot of UI x/y coordinates in it
 drawDeck = function () {
   
@@ -297,6 +355,50 @@ endGame = function () {
   
 };
 
+//  Hit box logic 
+
+// End Variable declaration
+
+// Begin Functions  
+window.addEventListener("click", function(event) {
+  mouse.x = event.x,        
+  mouse.y = event.y
+  var width = 80;
+  var length = 120; 
+
+  console.log("Refresh triggered.  Game Over === " + gameControls.gameOver); 
+  submitButton(mouse.x, mouse.y, playSurface);
+  quitButton(mouse.x, mouse.y);
+  clearSelectionButton(mouse.x, mouse.y);
+  settingsButton(mouse.x, mouse.y);
+  //if(displayed.returnButton === true){
+  //	returnButton(mouse.x, mouse.y);
+  //}
+  whichCards(mouse.x, mouse.y, width, length);        
+  //if there is a click fire off all these functions which represent all off the selectable
+  // elements in the game
+  cardOne();
+  cardTwo();  
+  cardThree();  
+  cardFour();
+  cardFive();
+  cardSix();
+  cardSeven();
+  cardEight();
+  cardNine();
+  cardTen();
+  cardEleven();
+  cardTwelve();
+  hintButton(mouse.x, mouse.y);
+  drawDeck();
+  drawBanner();
+  if (displayed.oneMore === true) {
+    reloadGame(mouse.x,mouse.y);
+  }
+  if (displayed.returnButton === true) {
+   returnButton(mouse.x, mouse.y);
+  }  
+});
 
 score = function () {
   var SCORE = document.getElementById("ctx").getContext("2d");
@@ -384,102 +486,6 @@ updateTimer = function () {
 	  }
 	}
 }
-
-//  Hit box logic 
-var selected = {
-  card1:false,
-  card2:false,
-  card3:false,
-  card4:false,
-  card5:false,
-  card6:false,
-  card7:false,
-  card8:false,
-  card9:false,
-  card10:false,
-  card11:false,
-  card12:false,
-  full:0
-};
-
-var displayed = {
-  card1: true,
-  card2: true,
-  card3: true,
-  card4: true,
-  card5: true,
-  card6: true,
-  card7: true,
-  card8: true,
-  card9: true,
-  card10:true,
-  card11:true,
-  card12:true,
-  hint: true,
-  submit: true,
-  deck: true,
-  clearSubmit: true,
-  settings: true,
-  banner: true,
-  timer: true,
-  returnButton: false,
-  oneMore: false
-};
-
-var hint = {
-  card1: false,
-  card2: false,
-  card3: false,
-  card4: false,
-  card5: false,
-  card6: false,
-  card7: false,
-  card8: false,
-  card9: false,
-  card10:false,
-  card11:false,
-  card12:false,
-  };
-
-// End Variable declaration
-
-// Begin Functions  
-window.addEventListener("click", function(event) {
-  mouse.x = event.x,        
-  mouse.y = event.y
-  var width = 80;
-  var length = 120; 
-
-  console.log("Refresh triggered.  Game Over === " + gameControls.gameOver); 
-  submitButton(mouse.x, mouse.y, playSurface);
-  quitButton(mouse.x, mouse.y);
-  clearSelectionButton(mouse.x, mouse.y);
-  settingsButton(mouse.x, mouse.y);
-  //if(displayed.returnButton === true){
-  //	returnButton(mouse.x, mouse.y);
-  //}
-  whichCards(mouse.x, mouse.y, width, length);        
-  //if there is a click fire off all these functions which represent all off the selectable
-  // elements in the game
-  cardOne();
-  cardTwo();  
-  cardThree();  
-  cardFour();
-  cardFive();
-  cardSix();
-  cardSeven();
-  cardEight();
-  cardNine();
-  cardTen();
-  cardEleven();
-  cardTwelve();
-  hintButton(mouse.x, mouse.y);
-  drawDeck();
-  drawBanner();
-  if (displayed.oneMore === true) {
-    reloadGame(mouse.x,mouse.y);
-  }  
-});
 
 updateScore = function () {
 	var scoreToAdd = 100;
@@ -706,8 +712,26 @@ settingsButton = function (x,y) {
     // SFX for Button Click 
    	console.log("settingsButton");
    	pauseGame();
-   	displayRules();  	
+   	displaySettings();  	
   }
+};
+
+displaySettings = function () {
+ 
+  var SETTINGS = document.getElementById("ctx").getContext("2d");
+	SETTINGS.clearRect(5,5,420,600);
+	SETTINGS.clearRect(50,50,450,580);	
+  SETTINGS.beginPath();
+  SETTINGS.strokeStyle="Black";
+  SETTINGS.lineWidth=6;
+  SETTINGS.rect(uiElements.rulesX, uiElements.rulesY, uiElements.rulesW, uiElements.rulesL);
+  SETTINGS.font="20px Arial";
+  SETTINGS.fillText("Settings Panel", uiElements.rulesLine1X, uiElements.rulesLine1Y);
+  SETTINGS.stroke();
+  SETTINGS.closePath();
+  displayed.returnButton = true;
+  drawReturnButton();
+
 };
 
 drawReturnButton = function () {
@@ -716,6 +740,7 @@ drawReturnButton = function () {
 	
 	 CTX.beginPath();
 	 CTX.clearRect(uiElements.settingsButtonX, uiElements.settingsButtonY, uiElements.settingsButtonW, uiElements.settingsButtonL);
+	 CTX.stroke();
 	 CTX.lineWidth=6;
 	 CTX.font="20px Arial";
 	 CTX.strokeStyle="Blue";
@@ -727,7 +752,7 @@ drawReturnButton = function () {
 }
 
 returnButton = function (x,y) {
-  if ((x >= uiElements.returnButtonX - uiElements.pad && x <= uiElements.returnButtonX + uiElements.returnButtonW + (uiElements.pad * 2)) && (y >= uiElements.returnButtonY - uiElements.pad && y <= uiElements.returnButtonY + uiElements.returnButtonL + (uiElements.pad * 2))  && displayed.returnButton === true) {
+  if ((x >= uiElements.returnButtonX - uiElements.pad && x <= uiElements.returnButtonX + uiElements.returnButtonW + (uiElements.pad * 2)) && (y >= uiElements.returnButtonY - uiElements.pad && y <= uiElements.returnButtonY + uiElements.returnButtonL + (uiElements.pad * 2)) && displayed.returnButton === true) {
     var WIPE = document.getElementById("ctx").getContext("2d");
 		WIPE.clearRect(5,5,420,600);
 		WIPE.clearRect(50,50,450,580);	
@@ -753,6 +778,7 @@ pauseGame = function () {
   displayed.banner = false;
   displayed.timer = false;
   displayed.settings = false;
+  displayed.returnButton = true;
 	}
 	refreshScreen();
 }
@@ -772,6 +798,7 @@ unPauseGame = function () {
   displayed.deck = true;
   displayed.banner = true;
   displayed.timer = true;
+  displayed.returnButton = false;
 	}
 	createGameUI();
 	refreshScreen();
@@ -1698,22 +1725,5 @@ updateTimer();
 
 // Tutorial section
 
-displayRules = function () {
- 
-  var RULES = document.getElementById("ctx").getContext("2d");
-	RULES.clearRect(5,5,420,600);
-	RULES.clearRect(50,50,450,580);	
-  RULES.beginPath();
-  RULES.strokeStyle="Black";
-  RULES.lineWidth=6;
-  RULES.rect(uiElements.rulesX, uiElements.rulesY, uiElements.rulesW, uiElements.rulesL);
-  RULES.font="20px Arial";
-  RULES.fillText("Settings Panel", uiElements.rulesLine1X, uiElements.rulesLine1Y);
-  RULES.stroke();
-  RULES.closePath();
-  displayed.returnButton = true;
-  drawReturnButton();
-
-};
 
 </script> </body> </html>
