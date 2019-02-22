@@ -419,8 +419,10 @@ window.addEventListener("click", function(event) {
 });
 
 window.addEventListener("touchstart", function(event) {
-  touch.x = event.x,        
-  touch.y = event.y
+  var touchobj = event.changedTouches[0]
+  
+  touch.x = parseInt(touchobj.clientX);        
+  touch.y = parseInt(touchobj.clientY);
   var width = 80;
   var length = 120; 
 
