@@ -418,6 +418,47 @@ window.addEventListener("click", function(event) {
   }  
 });
 
+window.addEventListener("touchstart", function(event) {
+  touch.x = event.x,        
+  touch.y = event.y
+  var width = 80;
+  var length = 120; 
+
+  console.log("Refresh triggered.  Game Over === " + gameControls.gameOver); 
+  submitButton(touch.x, touch.y, playSurface);
+  quitButton(touch.x, touch.y);
+  clearSelectionButton(touch.x, touch.y);
+  settingsButton(touch.x, touch.y);
+  //if(displayed.returnButton === true){
+  //	returnButton(touch.x, touch.y);
+  //}
+  whichCards(touch.x, touch.y, width, length);        
+  //if there is a click fire off all these functions which represent all off the selectable
+  // elements in the game
+  cardOne();
+  cardTwo();  
+  cardThree();  
+  cardFour();
+  cardFive();
+  cardSix();
+  cardSeven();
+  cardEight();
+  cardNine();
+  cardTen();
+  cardEleven();
+  cardTwelve();
+  hintButton(touch.x, touch.y);
+  drawDeck();
+  drawBanner();
+  if (displayed.oneMore === true) {
+    reloadGame(touch.x,touch.y);
+  }
+  if (displayed.returnButton === true) {
+   returnButton(touch.x, touch.y);
+  }  
+});
+
+
 score = function () {
   var SCORE = document.getElementById("ctx").getContext("2d");
   SCORE.beginPath();
