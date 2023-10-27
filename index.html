@@ -1,0 +1,1855 @@
+<!DOCTYPE html>
+
+<html lang="en">
+	<head>
+		<meta name= "viewport" content="initial-scale=1, width=device-width">
+		<title>hello</title>
+	</head>
+	<body>
+		<canvas id = "ctx" width="480" height="640" style="border:1px solid #000000;"></canvas>
+<script>
+// Variable declarations
+var mouse = {
+   x:undefined,
+   y:undefined
+}
+// Portrait mode include this file
+var cardGrid = {
+  cardWidth:80,
+  cardLength:120,
+  col1x:25,
+  col2x:125,
+  col3x:225,
+  col4x:325,
+  row1y:50,
+  row2y:190,
+  row3y:330,
+  padxy:2,
+  padwl:4,
+  padx:15,
+  pos1:35,
+  pos2:45,
+  pos3:65,
+  pos4:80,
+  pos5:95
+};
+var cardsRemaining = 69;
+//SFXs
+{
+var selectCardSFX = new Audio();
+selectCardSFX.src = 'static/SFX/selectCard.mp3';
+
+var deselectCardSFX = new Audio();
+deselectCardSFX.src = 'static/SFX/deselectCard.mp3';
+
+var selectCardFullSFX = new Audio();
+selectCardFullSFX.src = 'static/SFX/selectCardFull.mp3';
+
+var submitCardsSFX = new Audio();
+submitCardsSFX.src = 'static/SFX/submitCards.mp3';
+
+var submitCardsRejectSFX = new Audio();
+submitCardsRejectSFX.src = 'static/SFX/submitCardsReject.mp3';
+
+var timer2SFX = new Audio();
+timer2SFX.src = 'static/SFX/timer2.mp3';
+
+var timer0SFX = new Audio();
+timer0SFX.src = 'static/SFX/timer0.mp3';
+
+var newCardsSFX = new Audio();
+newCardsSFX.src = 'static/SFX/newCards.mp3';
+
+var hintSFX = new Audio();
+hintSFX.src = 'static/SFX/hint.mp3';
+
+var clearCardsSFX = new Audio();
+clearCardsSFX.src = 'static/SFX/clearCards.mp3';
+
+var gameOverWinSFX = new Audio();
+gameOverWinSFX.src = 'static/SFX/gameOverWin.mp3';
+
+// not using this one right now.
+var gameOverTimeEndsSFX = new Audio();
+gameOverTimeEndsSFX.src = 'static/SFX/gameOverTimeEnds.mp3';
+
+// end SFX
+// BackGround Music
+
+var backgroundMusic1 = new Audio();
+backgroundMusic1.src = 'static/SFX/backgroundMusic1.mp3';
+
+var backgroundMusic2 = new Audio();
+backgroundMusic2.src = 'static/SFX/backgroundMusic2.mp3';
+}
+//background music looping
+backgroundMusic2.addEventListener('ended', function() {
+  	this.currentTime = 0;
+  	this.play();
+  }, false);
+backgroundMusic2.loop = true;
+backgroundMusic2.play();
+backgroundMusic2.volume = .5;
+ 
+var gameControls = {
+	timer:60,
+	gameOver:false,
+	hintUsed:false,
+	timesUp:false,
+	gamePaused:false,
+	sfxOn: true
+	};
+	
+var uiElements = {
+  bannerX:100,
+  bannerY:10,
+  bannerW:240,
+  bannerL:25,
+  bannerTextX:110,
+  bannerTextY:27,
+  bannerText:"Select 3 cards to make a match",
+   
+  scoreX:25,
+  scoreY:10,
+  scoreW:60,
+  scoreL:25,
+  scoreTextX:40,
+  scoreTextY:29,
+  scoreText:0,
+  
+  timerX:350,
+  timerY:10,
+  timerW:60,
+  timerL:25,
+  timerTextX:370,
+  timerTextY:29,
+  timerText:60,
+  
+  quitButtonX:440,
+  quitButtonY:10,
+  quitButtonW:20,
+  quitButtonL:20,
+  quitButtonTextX:446,
+  quitButtonTextY:25,
+  
+  submitButtonX:25,
+  submitButtonY:550,
+  submitButtonW:105,
+  submitButtonL:50,
+  submitButtonTextX:40,
+  submitButtonTextY:580,
+   
+  hintButtonX:165,
+  hintButtonY:480,
+  hintButtonW:105,
+  hintButtonL:50,
+  hintButtonTextX:200,
+  hintButtonTextY:510,
+  
+  settingsButtonX:165,
+  settingsButtonY:550,
+  settingsButtonW:105,
+  settingsButtonL:50,
+  settingsButtonTextX:180,
+  settingsButtonTextY:580,
+  
+  sfxButtonHeaderTextX:130,
+  sfxButtonHeaderTextY:400,
+  
+  sfxButtonOnX:150,
+  sfxButtonOnY:410,
+  sfxButtonOnW:60,
+  sfxButtonOnL:60,
+  sfxButtonOnTextX:160,
+  sfxButtonOnTextY:450,
+  
+  sfxButtonOffX:250,
+  sfxButtonOffY:410,
+  sfxButtonOffW:60,
+  sfxButtonOffL:60,
+  sfxButtonOffTextX:257,
+  sfxButtonOffTextY:450,
+  
+  clearSelectionButtonX:25,
+  clearSelectionButtonY:480,
+  clearSelectionButtonW:105,
+  clearSelectionButtonL:50,
+  clearSelectionButtonTextX:30,
+  clearSelectionButtonTextY:510,
+  
+  rulesX:80,
+  rulesY:60,
+  rulesW:300,
+  rulesL:550,
+  rulesLine1X:160,
+  rulesLine1Y:100,
+  
+  returnButtonX:150,
+  returnButtonY:500,
+  returnButtonW:160,
+  returnButtonL:50,
+  returnButtonTextX:165,
+  returnButtonTextY:530,
+  
+  reloadButtonX:120,
+  reloadButtonY:360,
+  reloadButtonW:240,
+  reloadButtonL:60,
+  reloadButtonTextX:150,
+  reloadButtonTextY:400,
+  
+  pad:5
+
+};
+
+var selected = {
+  card1:false,
+  card2:false,
+  card3:false,
+  card4:false,
+  card5:false,
+  card6:false,
+  card7:false,
+  card8:false,
+  card9:false,
+  card10:false,
+  card11:false,
+  card12:false,
+  full:0
+};
+
+var displayed = {
+  card1: true,
+  card2: true,
+  card3: true,
+  card4: true,
+  card5: true,
+  card6: true,
+  card7: true,
+  card8: true,
+  card9: true,
+  card10:true,
+  card11:true,
+  card12:true,
+  hint: true,
+  submit: true,
+  deck: true,
+  clearSubmit: true,
+  settings: true,
+  banner: true,
+  timer: true,
+  returnButton: false,
+  oneMore: false,
+  sfxButtons: false
+  };
+
+var hint = {
+  card1: false,
+  card2: false,
+  card3: false,
+  card4: false,
+  card5: false,
+  card6: false,
+  card7: false,
+  card8: false,
+  card9: false,
+  card10:false,
+  card11:false,
+  card12:false,
+  };
+
+// drawDeck has a lot of UI x/y coordinates in it
+drawDeck = function () {
+  
+  drawBottom = function () {  
+    //Deck three (bottom)
+    XG.fillRect(380, 488, 80, 120);
+    // fill.Rect(x, y, w, h)
+    // clear.Rect(+2, +2, -4, -4)
+    XG.clearRect(382, 490, 76, 116);
+  };
+ 
+ drawMiddle = function () { 
+    //Deck two (middle)
+    // fill.Rect (x-6, y-6, w, h)
+    XG.fillRect(374, 482, 80, 120);
+    XG.clearRect(376, 484, 76, 116);
+  };
+
+ drawTop = function () {
+    //Deck one (top)
+    XG.fillRect(368, 476, 80, 120);
+    XG.clearRect(370, 478, 76 , 116);
+  };
+    
+  if (displayed.deck === true) {
+    var XG = document.getElementById("ctx").getContext("2d");
+    var deckTextLine1x = 375;
+    var deckTextLine1y = 520;
+    var deckTextLine2x = 375;
+    var deckTextLine2y = 540;
+    var deckTextLine3x = 395;
+    var deckTextLine3y = 580;
+   
+    XG.beginPath();
+  
+    if (playDeck.length >= 42) {
+      drawBottom();
+      drawMiddle();
+      drawTop();
+    } else if (playDeck.length >= 21) {
+        XG.clearRect(368, 476, 92, 132);
+        XG.stroke;
+        drawBottom();
+        drawMiddle();
+        deckTextLine1x = deckTextLine1x + 4; 
+        deckTextLine2x = deckTextLine2x + 4; 
+        deckTextLine3x = deckTextLine3x + 4; 
+     } else {
+        XG.clearRect(368, 476, 92, 132);
+        XG.stroke;
+        drawBottom();
+        deckTextLine1x = deckTextLine1x + 9; 
+        deckTextLine2x = deckTextLine2x + 9; 
+        if (playDeck.length > 9) {
+          deckTextLine3x = deckTextLine3x + 10;
+        } else {
+            deckTextLine3x = deckTextLine3x + 15;
+        }  
+    } 
+  
+    XG.font="14px Arial";
+    XG.fillText("Draw Deck", deckTextLine1x, deckTextLine1y);
+    XG.fillText("Cards Left:", deckTextLine2x, deckTextLine2y);
+    XG.fillStyle = 'red';
+    XG.font="24px Arial";
+    XG.fillText(cardsRemaining, deckTextLine3x, deckTextLine3y)
+    XG.stroke();
+    XG.font="14px Arial";
+    XG.fillStyle = "black";
+    XG.closePath();
+  };  
+};
+
+endGame = function () {
+  gameOverWinSFX.play();  
+  for (let i=1; i<13; i++){
+    let endgame = "card" + (i);
+    hint[endgame] = false;
+    selected[endgame] = false;
+    selected.full = 0;
+    displayed[endgame] = false;
+  };
+  displayed.hint = false;
+  displayed.submit = false;
+  displayed.clearSubmit = false;
+  displayed.deck = false;
+  displayed.settings = false;
+  //displayed.timer = false;
+  displayed.oneMore = true;
+  
+  uiElements.bannerText = "                    Play Again!!";
+  
+  let CTXG = document.getElementById("ctx").getContext("2d");
+  CTXG.beginPath();
+  CTXG.clearRect(10, 45, 460, 585);
+  CTXG.stroke();
+  CTXG.closePath();
+  CTXG.beginPath();
+  CTXG.fillRect(10, 45, 460, 560);
+  CTXG.font="30px Arial";
+  CTXG.fillStyle = "white";
+  CTXG.fillText("GAME OVER!!", 150, 100 );
+  CTXG.stroke();
+  CTXG.fillStyle = "black";
+  CTXG.fillRect(10, 200, 460, 560);
+  CTXG.lineWidth = "10";
+  CTXG.strokeStyle = "green";
+  CTXG.rect(uiElements.reloadButtonX, uiElements.reloadButtonY, uiElements.reloadButtonW, uiElements.reloadButtonL);
+  CTXG.stroke();  
+  CTXG.closePath();
+  CTXG.beginPath();
+  CTXG.font="24px Arial";
+  CTXG.fillStyle = "white";
+  CTXG.fillText("Another Round?", uiElements.reloadButtonTextX, uiElements.reloadButtonTextY );
+  CTXG.stroke();
+  CTXG.closePath();
+  
+     
+  //One More Game? Button
+  gameControls.gameOver = true;
+  
+};
+
+
+// End Variable declaration
+
+// Begin Functions  
+window.addEventListener("click", function(event) {
+  mouse.x = event.x,        
+  mouse.y = event.y
+  var width = 80;
+  var length = 120; 
+
+  console.log("Refresh triggered.  Game Over === " + gameControls.gameOver); 
+  submitButton(mouse.x, mouse.y, playSurface);
+  quitButton(mouse.x, mouse.y);
+  clearSelectionButton(mouse.x, mouse.y);
+  settingsButton(mouse.x, mouse.y);
+  //if(displayed.returnButton === true){
+  //	returnButton(mouse.x, mouse.y);
+  //}
+  whichCards(mouse.x, mouse.y, width, length);        
+  //if there is a click fire off all these functions which represent all off the selectable
+  // elements in the game
+  cardOne();
+  cardTwo();  
+  cardThree();  
+  cardFour();
+  cardFive();
+  cardSix();
+  cardSeven();
+  cardEight();
+  cardNine();
+  cardTen();
+  cardEleven();
+  cardTwelve();
+  hintButton(mouse.x, mouse.y);
+  drawDeck();
+  drawBanner();
+  if (displayed.oneMore === true) {
+    reloadGame(mouse.x,mouse.y);
+  }
+  if (displayed.returnButton === true) {
+   returnButton(mouse.x, mouse.y);
+  }  
+});
+
+window.addEventListener("touchstart", function(event) {
+  var touchobj = event.changedTouches[0]
+  
+  touch.x = parseInt(touchobj.clientX);        
+  touch.y = parseInt(touchobj.clientY);
+  var width = 80;
+  var length = 120; 
+
+  console.log("Refresh triggered.  Game Over === " + gameControls.gameOver); 
+  submitButton(touch.x, touch.y, playSurface);
+  quitButton(touch.x, touch.y);
+  clearSelectionButton(touch.x, touch.y);
+  settingsButton(touch.x, touch.y);
+  //if(displayed.returnButton === true){
+  //	returnButton(touch.x, touch.y);
+  //}
+  whichCards(touch.x, touch.y, width, length);        
+  //if there is a click fire off all these functions which represent all off the selectable
+  // elements in the game
+  cardOne();
+  cardTwo();  
+  cardThree();  
+  cardFour();
+  cardFive();
+  cardSix();
+  cardSeven();
+  cardEight();
+  cardNine();
+  cardTen();
+  cardEleven();
+  cardTwelve();
+  hintButton(touch.x, touch.y);
+  drawDeck();
+  drawBanner();
+  if (displayed.oneMore === true) {
+    reloadGame(touch.x,touch.y);
+  }
+  if (displayed.returnButton === true) {
+   returnButton(touch.x, touch.y);
+  }  
+});
+
+
+score = function () {
+  var SCORE = document.getElementById("ctx").getContext("2d");
+  SCORE.beginPath();
+  SCORE.clearRect(uiElements.scoreX, uiElements.scoreY, uiElements.scoreW, uiElements.scoreL);
+  SCORE.strokeStyle="black";
+  SCORE.lineWidth=4;
+  SCORE.rect(uiElements.scoreX, uiElements.scoreY, uiElements.scoreW, uiElements.scoreL);
+  SCORE.font="20px Arial";
+  SCORE.fillStyle="green";
+  if (uiElements.scoreText === 0) {
+     SCORE.fillText(uiElements.scoreText, uiElements.scoreTextX + 10 , uiElements.scoreTextY);
+  } else if (uiElements.scoreText < 999){; 
+ 		SCORE.fillText(uiElements.scoreText, uiElements.scoreTextX , uiElements.scoreTextY);
+	} else {
+  	SCORE.fillText(uiElements.scoreText, uiElements.scoreTextX - 3 , uiElements.scoreTextY);
+ 	};
+  SCORE.stroke();
+  SCORE.fillStyle="black";
+  SCORE.closePath();
+};
+
+timer = function () {
+  if (displayed.timer === true) {
+	 var TIMER = document.getElementById("ctx").getContext("2d");
+	 TIMER.beginPath();
+	 TIMER.clearRect(uiElements.timerX, uiElements.timerY, uiElements.timerW, uiElements.timerL);
+	 TIMER.stroke();
+	 TIMER.closePath();
+	 TIMER.beginPath();
+	 TIMER.arc(uiElements.timerTextX +10, uiElements.timerTextY - 5, 17, 0, 2 * Math.PI, false);
+	 TIMER.fillStyle = 'white';
+	 TIMER.fill();
+	 TIMER.lineWidth = 3;
+	 TIMER.strokeStyle = 'black';
+	 TIMER.stroke();
+	 TIMER.font="20px Arial";
+	 TIMER.fillStyle = 'red';
+	 if (gameControls.gameOver === false) {
+		 if (uiElements.timerText > 9) {
+			 TIMER.fillText(uiElements.timerText, uiElements.timerTextX - 1, uiElements.timerTextY);
+		 } else {
+				 TIMER.fillText(uiElements.timerText, uiElements.timerTextX + 5, uiElements.timerTextY);
+		 }
+	 } else {
+			 TIMER.fillText("", uiElements.timerTextX, uiElements.timerTextY);
+	 };
+	 TIMER.stroke();
+	 TIMER.fillStyle = 'black';
+	 TIMER.closePath();
+	 if (uiElements.timerText === 3) {
+		 timer2SFX.play();
+		 timer2SFX.volume = .5;
+	 }
+	 if (uiElements.timerText === 0) {
+		 timer0SFX.play();
+		 timer0SFX.volume = .5;
+
+	 }
+  }
+};
+
+updateTimer = function () {
+  console.log("timer started");
+  if (gameControls.gamePaused === false){
+	  if (gameControls.timer === 0) {
+		  gameControls.timer = 60;
+		  gameControls.timesUp = true;
+		  removeCards();
+	  }
+	  if (gameControls.gameOver === false && gameControls.gamePaused === false) {
+		  var countdownTimer = setInterval(function(){
+		    if (gameControls.gamePaused === false) {
+			    gameControls.timer --;
+		    }
+		    uiElements.timerText = gameControls.timer;
+		    timer();
+		    if (gameControls.timer <= 0 && gameControls.gameOver === false && gameControls.gamePaused === false){ 
+			    clearInterval(countdownTimer);
+			    if (gameControls.gamePaused === false) {
+			    	updateTimer();
+					}
+		    }
+		  },1000);
+	  }
+	}
+}
+
+updateScore = function () {
+	var scoreToAdd = 100;
+	var scoreTemp = 0;
+	var finalScore = 0;
+	if (gameControls.hintUsed === true) {
+		scoreToAdd = 50;
+	};
+	if (gameControls.timesUp === true) {
+		scoreToAdd = 0;
+	};
+	scoreToAdd = scoreToAdd + uiElements.timerText;
+	uiElements.bannerText = scoreToAdd;
+	scoreTemp = uiElements.scoreText;
+	finalScore = scoreToAdd + scoreTemp;
+	uiElements.scoreText = finalScore;
+	score();
+	gameControls.timesUp = false;
+	console.log("Score: " + scoreToAdd + " hint used? " + gameControls.hintUsed + " Time's Up? " + gameControls.timesUp);
+
+};
+ 
+// creating a deck of cards based on these four different characteristics or suits.
+createDeck = function () {
+  var symbol = [ "diamond", "squiggle", "oval"];
+  var color = [ "red", "green", "purple"];
+  var shading = [ "solid", "striped", "open"];
+  var quantity = [ 1, 2, 3];
+
+// needed for each of the loops.  Each for loop is like a power multiplier  in this case 3 to the 4th power or 81 loops
+// Leaving these in and commented out as I will be porting this to other scripting languages.
+//var i = 0;  For the symbols on the card
+//var j = 0;  For the color of the symbols on the card
+//var k = 0;  For the shading of the symbols on the card
+//var l = 0;  For the quantity of symbols on the card
+
+//  Creating the deck <Start> ------------------------------------------------------------
+// deck array
+  var deck = [];
+  var m = 0;  
+
+//  looping structure to create the deck of cards
+  for (let i = 0; i < symbol.length; i++) {
+    for (let j = 0; j < color.length; j++) { 
+      for (let k = 0; k < shading.length; k++) {
+        for (let l = 0; l < quantity.length; l++) {
+          deck[m] = {symbol: symbol[i], color:color[j], shading: shading[k], quantity: quantity[l], cardID : m+1, hint:false, displayed:false, slot:0, selected:false}; 
+          // DEBUG output to make sure this works
+          //console.log((m+1) + " " + symbol[i] + " and " + color[j] + " and " + shading[k] + " and " + quantity[l]);
+          //console.log((m+1) + " " + deck[m].symbol + ", "+ deck[m].color + ", "+ deck[m].shading + ", "+ deck[m].quantity);
+          m++;
+        }
+      }
+    }
+  }
+
+  return deck;
+};
+
+shuffleDeck = function (deckMaster) {
+  let shuffled = deckMaster.slice(0);
+  var j, x, i;
+  for (i = shuffled.length - 1; i > 0; i--) {
+    j = Math.floor(Math.random() * (i + 1));
+    x = shuffled[i];
+    shuffled[i] = shuffled[j];
+    shuffled[j] = x;
+  }
+  return shuffled;
+}
+
+createTable = function (playDeck) {
+  //create initial table plateau of 12 dealt cards
+  var plateau = [];
+  
+  for ( let cards = 0; cards < 12; cards++) {
+    plateau[cards] = playDeck.pop();
+    plateau[cards].slot = cards;
+  };
+  return plateau;
+};
+
+// noMatch is used when creating a new playsurface
+//isMatch is used when determining if the three selected and submitted cards are a match 
+noMatch = function (playSurface) {
+  // clearing the hint data
+  for (let i=1; i<13; i++){
+    let clearHints = "card" + (i);
+    hint[clearHints] = false;
+  }
+  // complicated nesting for loops to find matches    
+  for (let i = 0; i < (playSurface.length - 2); i++) {
+    for (let j = i+1; j < (playSurface.length - 1); j++) {
+      for (let k = j+1; k < playSurface.length; k++) {
+        symbolMatched = 0;
+        colorMatched = 0;
+        shadingMatched = 0;
+        quantityMatched = 0;
+        weHaveASet = 0;
+                  
+        // Are the symbols all the same or all different?
+        if (playSurface[i].symbol === playSurface[j].symbol && playSurface[i].symbol === playSurface[k].symbol) {
+          symbolMatched = 1;
+        } else if ((playSurface[i].symbol !== playSurface[j].symbol) && (playSurface[i].symbol !== playSurface[k].symbol) && (playSurface[j].symbol !== playSurface[k].symbol)) {
+          symbolMatched = 1;
+        } else { 
+          symbolMatched = 0;
+        }
+        // Now check the colors   
+        if (playSurface[i].color === playSurface[j].color && playSurface[i].color === playSurface[k].color) {
+          colorMatched = 1;
+        } else if ((playSurface[i].color !== playSurface[j].color) && (playSurface[i].color !== playSurface[k].color) && (playSurface[j].color !== playSurface[k].color)) {
+          colorMatched = 1;
+        } else { 
+          colorMatched = 0;
+        }
+        // Now the check the shading
+        if (playSurface[i].shading === playSurface[j].shading && playSurface[i].shading === playSurface[k].shading) {
+          shadingMatched = 1;
+        } else if ((playSurface[i].shading !== playSurface[j].shading) && (playSurface[i].shading !== playSurface[k].shading) && (playSurface[j].shading !== playSurface[k].shading)) {
+          shadingMatched = 1;
+        } else { 
+          shadingMatched = 0;
+        }
+        // finally the quantity of symbols
+        if (playSurface[i].quantity === playSurface[j].quantity && playSurface[i].quantity === playSurface[k].quantity) {
+          quantityMatched = 1;
+        } else if ((playSurface[i].quantity !== playSurface[j].quantity) && (playSurface[i].quantity !== playSurface[k].quantity) && (playSurface[j].quantity !== playSurface[k].quantity)) {
+          quantityMatched = 1;
+        } else { 
+          quantityMatched = 0;
+        }
+        // Now checking if we have a set
+        if (4 === (symbolMatched + colorMatched + shadingMatched + quantityMatched)) {
+          weHaveASet = 1;
+        // saving the set for the hint buttons.
+          let resultI = "card" + (i + 1);
+          let resultJ = "card" + (j + 1);
+          let resultK = "card" + (k + 1);
+          hint[resultI] = true;
+          hint[resultJ] = true;
+          hint[resultK] = true;
+          // DEBUG code
+          //console.log(hint.card1 + " " + hint.card2 + " " + hint.card3 + " " + hint.card4 + " " + hint.card5 + " " + hint.card6 + " " + hint.card7 + " " + hint.card8 + " " + hint.card9 + " " + hint.card10 + " " + hint.card11 + " " + hint.card12);
+          //console.log ( " \n\nWe have a Set!!: i = " + i + " j = " + j + " k = " + k + " symbol: " + symbolMatched + " color: " + colorMatched + " shading: " + shadingMatched + " quantity: " + quantityMatched + "\n");
+          //console.log((1) + " " + playSurface[i].symbol + ", "+ playSurface[i].color + ", "+ playSurface[i].shading + ", "+ playSurface[i].quantity);
+          //console.log((2) + " " + playSurface[j].symbol + ", "+ playSurface[j].color + ", "+ playSurface[j].shading + ", "+ playSurface[j].quantity);
+          //console.log((3) + " " + playSurface[k].symbol + ", "+ playSurface[k].color + ", "+ playSurface[k].shading + ", "+ playSurface[k].quantity);
+          // if we have a set then no need to do anything else.  Break out of this loop.
+          return weHaveASet;
+        } else {
+          weHaveASet = 0;
+          //DEBUG code
+          //console.log("nope");
+          //console.log ( " \nNo Set: i = " + i + " j = " + j + " k = " + k + " symbol: " + symbolMatched + " color: " + colorMatched + " shading: " + shadingMatched + " quantity: " + quantityMatched);
+          //console.log((1) + " " + playSurface[i].symbol + ", "+ playSurface[i].color + ", "+ playSurface[i].shading + ", "+ playSurface[i].quantity);
+          //console.log((2) + " " + playSurface[j].symbol + ", "+ playSurface[j].color + ", "+ playSurface[j].shading + ", "+ playSurface[j].quantity);
+          //console.log((3) + " " + playSurface[k].symbol + ", "+ playSurface[k].color + ", "+ playSurface[k].shading + ", "+ playSurface[k].quantity);
+        };
+      }; // end of k for loop
+    }; // end of j for loop
+  }; // end of i for loop
+  return weHaveASet;
+}; //end of the function
+
+submitButton = function (x,y, playSurface) {
+  if (displayed.submit === true && gameControls.gamePaused === false) {
+    if ((x >= uiElements.submitButtonX - uiElements.pad && x <= uiElements.submitButtonX + uiElements.submitButtonW + (uiElements.pad * 2)) && (y >= uiElements.submitButtonY - uiElements.pad && y <= uiElements.submitButtonY + uiElements.submitButtonL + (uiElements.pad * 2))) {
+      console.log("submitButton");
+      if (selected.full === 3) {
+        var submitted = [];
+        let j = 0;
+        for(let i = 1; i < 13; i++) {
+          let count = "card" + i;
+          if (selected[count] === true) {
+            console.log (i-1);
+            submitted[j] = playSurface[i-1];
+            j++;
+          }
+      }
+        console.log("submitted cards:" + submitted[0].slot + " " + submitted[1].slot + " "  + submitted[2].slot );
+        //Is Match function
+        
+        if (gameControls.gameOver === false) {
+          flashSubmitButton();
+          isMatch(submitted);  
+          if (gameControls.gameOver === false){
+            refreshScreen();
+          }
+        }
+      } else {
+   		    submitCardsRejectSFX.play();
+          console.log("Please Select Three cards");
+      }
+    }
+  }
+};
+
+reloadGame = function (x,y) {
+  if ((x >= uiElements.reloadButtonX - uiElements.pad && x <= uiElements.reloadButtonX + uiElements.reloadButtonW + (uiElements.pad * 2)) && (y >= uiElements.reloadButtonY - uiElements.pad && y <= uiElements.reloadButtonY + uiElements.reloadButtonL + (uiElements.pad * 2))  && displayed.oneMore === true) {
+    // SFX for Button Click 
+   	console.log("reload Game");
+    window.location.reload(true);
+  }
+};
+
+drawSettingsButton = function () {
+    
+  var CTX = document.getElementById("ctx").getContext("2d");
+  
+  CTX.beginPath();
+  CTX.clearRect(uiElements.settingsButtonX, uiElements.settingsButtonY, uiElements.settingsButtonW, uiElements.settingsButtonL);
+  CTX.lineWidth=6;
+  CTX.font="20px Arial";
+  CTX.strokeStyle="Black";
+  CTX.strokeRect(uiElements.settingsButtonX, uiElements.settingsButtonY, uiElements.settingsButtonW, uiElements.settingsButtonL);
+  CTX.fillText("Settings", uiElements.settingsButtonTextX, uiElements.settingsButtonTextY);
+  CTX.stroke();
+  CTX.closePath();
+}
+
+settingsButton = function (x,y) {
+  if ((x >= uiElements.settingsButtonX - uiElements.pad && x <= uiElements.settingsButtonX + uiElements.settingsButtonW + (uiElements.pad * 2)) && (y >= uiElements.settingsButtonY - uiElements.pad && y <= uiElements.settingsButtonY + uiElements.settingsButtonL + (uiElements.pad * 2))  && displayed.settings === true) {
+    // SFX for Button Click 
+   	console.log("settingsButton");
+   	pauseGame();
+   	displaySettings();  	
+  }
+};
+
+displaySettings = function () {
+ 
+  var SETTINGS = document.getElementById("ctx").getContext("2d");
+	SETTINGS.clearRect(5,5,420,600);
+	SETTINGS.clearRect(50,50,450,580);	
+  SETTINGS.beginPath();
+  SETTINGS.strokeStyle="Black";
+  SETTINGS.lineWidth=6;
+  SETTINGS.rect(uiElements.rulesX, uiElements.rulesY, uiElements.rulesW, uiElements.rulesL);
+  SETTINGS.font="20px Arial";
+  SETTINGS.fillText("Settings Panel", uiElements.rulesLine1X, uiElements.rulesLine1Y);
+  SETTINGS.stroke();
+  SETTINGS.closePath();
+  displayed.returnButton = true;
+  drawReturnButton();
+  displayed.sfxButtons = true;
+  drawSfxButtons();
+};
+
+drawReturnButton = function () {
+	if (displayed.returnButton === true) {  
+	 var CTX = document.getElementById("ctx").getContext("2d");
+	 CTX.beginPath();
+	 CTX.clearRect(uiElements.settingsButtonX, uiElements.settingsButtonY, uiElements.settingsButtonW, uiElements.settingsButtonL);
+	 CTX.stroke();
+	 CTX.lineWidth=6;
+	 CTX.font="20px Arial";
+	 CTX.strokeStyle="Blue";
+	 CTX.strokeRect(uiElements.returnButtonX, uiElements.returnButtonY , uiElements.returnButtonW, uiElements.returnButtonL);
+	 CTX.fillText("Back To Game", uiElements.returnButtonTextX, uiElements.returnButtonTextY);
+	 CTX.stroke();
+	 CTX.closePath();	
+	 
+	}
+}
+
+returnButton = function (x,y) {
+  if ((x >= uiElements.returnButtonX - uiElements.pad && x <= uiElements.returnButtonX + uiElements.returnButtonW + (uiElements.pad * 2)) && (y >= uiElements.returnButtonY - uiElements.pad && y <= uiElements.returnButtonY  + uiElements.returnButtonL + (uiElements.pad * 2)) && displayed.returnButton === true) {
+    var WIPE = document.getElementById("ctx").getContext("2d");
+		WIPE.clearRect(5,5,420,600);
+		WIPE.clearRect(50,50,450,580);	
+  	WIPE.beginPath();  	
+      // SFX for Button Click 
+   	console.log("return to Game Button");
+   	unPauseGame();
+  }
+};
+
+pauseGame = function () {
+	if (gameControls.gamePaused === false){
+		gameControls.gamePaused = true;
+		for (let i=1; i<13; i++){
+    	let pausing = "card" + (i);
+    	displayed[pausing] = false;
+  	};
+  displayed.hint = false;
+  displayed.submit = false;
+  displayed.clearSubmit = false;
+  displayed.deck = false;
+  displayed.banner = false;
+  displayed.timer = false;
+  displayed.settings = false;
+  displayed.returnButton = true;
+	displayed.sfxButtons = true;
+	}
+	refreshScreen();
+}
+
+unPauseGame = function () {
+	if (gameControls.gamePaused === true){
+		gameControls.gamePaused = false;
+		for (let i=1; i<13; i++){
+    	let pausing = "card" + (i);
+    	displayed[pausing] = true;
+  	};
+  displayed.hint = true;
+  displayed.submit = true;
+  displayed.clearSubmit = true;
+  displayed.settings = true;
+  
+  displayed.deck = true;
+  displayed.banner = true;
+  displayed.timer = true;
+  displayed.returnButton = false;
+  displayed.sfxButtons = false;
+	}
+	createGameUI();
+	refreshScreen();
+}
+
+flashSubmitButton = function () {
+    
+  var CTX = document.getElementById("ctx").getContext("2d");
+  
+  CTX.beginPath();
+  CTX.clearRect(uiElements.submitButtonX, uiElements.submitButtonY, uiElements.submitButtonW, uiElements.submitButtonL);
+  CTX.lineWidth=6;
+  CTX.font="20px Arial";
+  CTX.strokeStyle="Red";
+  CTX.strokeRect(uiElements.submitButtonX, uiElements.submitButtonY, uiElements.submitButtonW, uiElements.submitButtonL);
+  CTX.fillText("Submit", uiElements.submitButtonTextX, uiElements.submitButtonTextY);
+  CTX.stroke();
+  CTX.closePath();
+  
+  restoreSubmitButton = function () {
+    CTX.beginPath();
+    CTX.clearRect(uiElements.submitButtonX, uiElements.submitButtonY, uiElements.submitButtonW, uiElements.submitButtonL);
+    CTX.lineWidth=6;
+    CTX.font="20px Arial";
+    CTX.strokeStyle="Blue";
+    CTX.strokeRect(uiElements.submitButtonX, uiElements.submitButtonY, uiElements.submitButtonW, uiElements.submitButtonL);
+    CTX.fillText("Submit", uiElements.submitButtonTextX, uiElements.submitButtonTextY);
+    CTX.stroke();
+    CTX.closePath();
+  };
+  if (playDeck.length > 3) {
+  	setTimeout(restoreSubmitButton, 180);
+  }
+};
+
+isMatch = function (submitted) {
+  // clearing the hint data
+  // complicated nesting for loops to find matches    
+  for (let i = 0; i < (submitted.length - 2); i++) {
+    for (let j = i+1; j < (submitted.length - 1); j++) {
+      for (let k = j+1; k < submitted.length; k++) {
+        symbolMatched = 0;
+        colorMatched = 0;
+        shadingMatched = 0;
+        quantityMatched = 0;
+        weHaveASet = 0;
+        // Are the symbols all the same or all different?
+        if (submitted[i].symbol === submitted[j].symbol && submitted[i].symbol === submitted[k].symbol) {
+          symbolMatched = 1;
+        } else if ((submitted[i].symbol !== submitted[j].symbol) && (submitted[i].symbol !== submitted[k].symbol) && (submitted[j].symbol !== submitted[k].symbol)) {
+          symbolMatched = 1;
+        } else { 
+          symbolMatched = 0;
+        }
+        // Now check the colors   
+        if (submitted[i].color === submitted[j].color && submitted[i].color === submitted[k].color) {
+          colorMatched = 1;
+        } else if ((submitted[i].color !== submitted[j].color) && (submitted[i].color !== submitted[k].color) && (submitted[j].color !== submitted[k].color)) {
+          colorMatched = 1;
+        } else { 
+          colorMatched = 0;
+        }
+        // Now the check the shading
+        if (submitted[i].shading === submitted[j].shading && submitted[i].shading === submitted[k].shading) {
+          shadingMatched = 1;
+        } else if ((submitted[i].shading !== submitted[j].shading) && (submitted[i].shading !== submitted[k].shading) && (submitted[j].shading !== submitted[k].shading)) {
+          shadingMatched = 1;
+        } else { 
+          shadingMatched = 0;
+        }
+        // finally the quantity of symbols
+        if (submitted[i].quantity === submitted[j].quantity && submitted[i].quantity === submitted[k].quantity) {
+          quantityMatched = 1;
+        } else if ((submitted[i].quantity !== submitted[j].quantity) && (submitted[i].quantity !== submitted[k].quantity) && (submitted[j].quantity !== submitted[k].quantity)) {
+          quantityMatched = 1;
+        } else { 
+          quantityMatched = 0;
+        }
+        // Now checking if we have a set
+        if (4 === (symbolMatched + colorMatched + shadingMatched + quantityMatched)) {
+          weHaveASet = 1;
+          // update score
+          submitCardsSFX.play();
+          updateScore();
+          gameControls.hintUsed = false;
+          //clearhints and selections
+          for (let i=1; i<13; i++){
+            let clearHints = "card" + (i);
+            hint[clearHints] = false;
+            selected[clearHints] = false;
+            selected.full = 0;
+          };
+          cardsRemaining = cardsRemaining - 3;
+          dealCards(submitted);
+          continueGame(submitted);
+          submitted.length = 0;
+          if (gameControls.gameOver === false) {
+            refreshScreen();
+          }
+					if (cardsRemaining === 0) {
+					  endGame();
+						console.log("Game ended due to no more cards");
+  				};	
+        } else {
+            weHaveASet = 0;
+            submitCardsRejectSFX.play();
+            //clear the submitted array
+            //flash the submit button
+            //flashSubmitButton();
+          	//Change the game banner text
+          	uiElements.bannerText = "Not a Match!";
+          	clearSelections();
+          	setTimeout(defaultBanner, 100);
+						
+        };
+      }; // end of k for loop
+    }; // end of j for loop
+  }; // end of i for loop
+  return weHaveASet;
+}; //end of the function
+
+defaultBanner = function () {
+	uiElements.bannerText = "Select 3 cards to make a match";
+};
+
+dealCards = function(submitted) {
+  // Setting variables
+  var slot1 = submitted[0].slot;        
+  var slot2 = submitted[1].slot;
+  var slot3 = submitted[2].slot;
+
+  console.log("Dealing Cards --> slot 1 is card " + slot1 + "; slot 2 is " + slot2 + "; slot 3 is " + slot3 );
+  //changing the cards from the ones submitted to ones from the deck
+  playSurface[slot1] = playDeck.pop();
+  playSurface[slot1].slot = slot1;
+   
+  playSurface[slot2] = playDeck.pop();
+  playSurface[slot2].slot = slot2;
+  
+  playSurface[slot3] = playDeck.pop();
+  playSurface[slot3].slot = slot3;
+};
+   
+startGame = function (playSurface, playDeck){
+  
+  drawSettingsButton();
+  
+	backgroundMusic2.addEventListener('ended', function() {
+  	this.currentTime = 0;
+  	this.play();
+  }, false);
+  backgroundMusic2.loop = true;
+	backgroundMusic2.play();
+      
+  var noSets = noMatch(playSurface);
+  let i = 0;
+  console.log("Game Started");
+  while (noSets === 0) {
+    //masterDeck = createDeck();
+      for (let cards = 69; cards < 81; cards++) {
+        playDeck[cards] = playSurface.pop();
+        playDeck[cards].slot = -1;
+      //  console.log("Table cards: " + playSurface.length + " Deck cards:" + playDeck.length);
+      } 
+    playDeck = shuffleDeck(playDeck);
+    playSurface = createTable(playDeck);
+    noSets = noMatch(playSurface);
+    i = i+1;
+    console.log(noSets + " redeal " + i);   
+  };  
+return playSurface; 
+};
+//  It should trigger a different process, of reshuffling the cards and redealing 12 cards.
+continueGame = function (submitted){
+  var noSets = noMatch(playSurface);
+  let i = 0;
+  if (playDeck.length !== 0) {
+    while (noSets === 0) {
+      console.log("********************************");
+      console.log("submitted " + submitted[0].slot + " "+ submitted[1].slot + " "+ submitted[2].slot + " ");   
+      var slot1 = submitted[0].slot;
+      var slot2 = submitted[1].slot;
+      var slot3 = submitted[2].slot;
+      let swapCards = [];
+      swapCards[0] = playSurface[slot1];
+      swapCards[1] = playSurface[slot2];
+      swapCards[2] = playSurface[slot3];
+      swapCards[0].slot = -1;
+      swapCards[1].slot = -1;
+      swapCards[2].slot = -1;
+
+      playSurface[slot1] = playDeck.pop();
+      playSurface[slot1].slot = slot1;
+      playSurface[slot2] = playDeck.pop();
+      playSurface[slot2].slot = slot2;
+      playSurface[slot3] = playDeck.pop();
+      playSurface[slot3].slot = slot3;
+      playDeck.push(swapCards[0]);
+      playDeck.push(swapCards[1]);
+      playDeck.push(swapCards[2]);
+      
+      playDeck = shuffleDeck(playDeck);
+      console.log("playDeck Length is : " + playDeck.length);
+      console.log("playSurface reset");
+      noSets = noMatch(playSurface);
+      i = i+1;
+      console.log(noSets + " redeal " + i);
+      if (i === 3) {
+        endGame();
+        console.log("Game ended by no sets on table");
+        return;   
+      }
+    }
+    gameControls.timer = 60;
+  } else {
+      endGame();
+      console.log("Game ended by draw Deck depleted");
+  }
+  return; 
+};
+  
+drawCards = function (playSurface) {
+  for (let i = 0; i < playSurface.length; i++) {
+  createCard(playSurface);
+  };  
+};  
+
+drawBanner = function () {
+  if (displayed.banner === true) {
+  	var CTXG = document.getElementById("ctx").getContext("2d");
+  	//the instruction banner
+  	CTXG.clearRect(uiElements.bannerX, uiElements.bannerY, uiElements.bannerW, uiElements.bannerL);
+  	CTXG.beginPath();
+  	CTXG.strokeStyle="Purple";
+  	CTXG.lineWidth=4;
+  	CTXG.rect(uiElements.bannerX, uiElements.bannerY, uiElements.bannerW, uiElements.bannerL);
+  	CTXG.font="14px Arial";
+  	CTXG.fillText(uiElements.bannerText, uiElements.bannerTextX, uiElements.bannerTextY);
+  	CTXG.stroke();
+  	CTXG.closePath();
+	}
+};
+
+createGameUI = function (){
+  // create the game screen elements
+  var CTXG = document.getElementById("ctx").getContext("2d");
+  //the instruction banner
+  drawBanner();
+  timer();
+  
+//Quit button
+  CTXG.beginPath();
+  CTXG.strokeStyle="Red";
+  CTXG.lineWidth=6;
+  CTXG.rect(uiElements.quitButtonX, uiElements.quitButtonY, uiElements.quitButtonW, uiElements.quitButtonL);
+  CTXG.font="14px Arial";
+  CTXG.fillText("X", uiElements.quitButtonTextX, uiElements.quitButtonTextY);
+  CTXG.stroke();
+  CTXG.closePath();
+
+//Deck graphic
+  drawDeck();
+  
+  
+//Hint button
+  CTXG.beginPath();
+  CTXG.lineWidth=6;
+  CTXG.strokeStyle="Blue";
+  CTXG.rect(uiElements.hintButtonX, uiElements.hintButtonY, uiElements.hintButtonW, uiElements.hintButtonL);
+  CTXG.font="20px Arial";
+  CTXG.fillText("Show Hint", uiElements.hintButtonTextX - 28, uiElements.hintButtonTextY);
+  CTXG.stroke();
+  CTXG.closePath();
+
+//clearSelection button
+  CTXG.beginPath();
+  CTXG.lineWidth=6;
+  CTXG.strokeStyle="Blue";
+  CTXG.rect(uiElements.clearSelectionButtonX,uiElements.clearSelectionButtonY, uiElements.clearSelectionButtonW, uiElements.clearSelectionButtonL);
+  CTXG.font="14px Arial";
+  CTXG.fillText("Clear Selected", uiElements.clearSelectionButtonTextX + 1, uiElements.clearSelectionButtonTextY - 8);
+  CTXG.fillText("Cards", uiElements.clearSelectionButtonTextX + 25, uiElements.clearSelectionButtonTextY + 10);
+  CTXG.stroke();
+  CTXG.closePath();
+  //draw score box
+
+//Submit button
+  CTXG.beginPath();
+  CTXG.strokeStyle="Blue";
+  CTXG.lineWidth=6;
+  CTXG.rect(uiElements.submitButtonX, uiElements.submitButtonY, uiElements.submitButtonW, uiElements.submitButtonL);
+  CTXG.font="20px Arial";
+  CTXG.fillText("Submit", uiElements.submitButtonTextX, uiElements.submitButtonTextY);
+  CTXG.stroke();
+  CTXG.closePath();
+
+// Settings button
+  drawSettingsButton();
+
+  score();
+
+};
+ 
+quitButton = function (x,y) {
+  if ((x >= uiElements.quitButtonX - uiElements.pad && x <= (uiElements.quitButtonX + uiElements.quitButtonW + (uiElements.pad * 2))) && (y >= uiElements.quitButtonY - uiElements.pad && y <= (uiElements.quitButtonY + uiElements.quitButtonL + (uiElements.pad * 2)))) {
+  //location.reload(true);  
+  endGame();
+  console.log("Game ended by quit button");
+
+  }
+};
+
+hintButton = function (x,y) {
+  if (displayed.hint === true && gameControls.gamePaused === false) {
+    if ((x >= uiElements.hintButtonX - uiElements.pad && x <= uiElements.hintButtonX + uiElements.hintButtonW + (uiElements.pad * 2)) && (y >= uiElements.hintButtonY - uiElements.pad && y <= uiElements.hintButtonY + uiElements.hintButtonL + (uiElements.pad * 2))) {
+      hintSFX.play();
+     	console.log("hintButton");
+      gameControls.hintUsed = true;
+      let gatekeeper = 0;
+      for (let i=1; i<13; i++){
+        let hints = "card" + (i);
+        if (hint[hints] === true) {
+          console.log(hints + ":" + hint[hints]);
+          while (gatekeeper === 0) {
+          console.log ("while loop " + i);
+            flashHint(i);
+            gatekeeper = 1;
+          } 
+        }
+      }
+    }
+  }
+};
+
+flashHint = function(cardNumber) {
+  var hintX = 0;
+  var hintY = 0;
+  switch(cardNumber) {
+    case 1:
+      console.log("cardOne");
+      hintX = cardGrid.col1x;
+      hintY = cardGrid.row1y;
+      break;
+    case 2:
+      console.log("cardTwo");
+      hintX = cardGrid.col1x;
+      hintY = cardGrid.row2y;
+      break;
+    case 3:
+      console.log("cardThree");
+      hintX = cardGrid.col1x;
+      hintY = cardGrid.row3y;
+      break;
+    case 4:
+      console.log("cardFour");
+      hintX = cardGrid.col2x;
+      hintY = cardGrid.row1y;
+      break;
+    case 5:
+      console.log("cardFive");
+      hintX = cardGrid.col2x;
+      hintY = cardGrid.row2y;
+      break;
+    case 6:
+      console.log("cardSix");
+      hintX = cardGrid.col2x;
+      hintY = cardGrid.row3y;
+      break;
+    case 7:
+      console.log("cardSeven");
+      hintX = cardGrid.col3x;
+      hintY = cardGrid.row1y;
+      break;
+    case 8:
+      console.log("cadrEight");
+      hintX = cardGrid.col3x;
+      hintY = cardGrid.row2y;
+      break;
+    case 9:
+      console.log("cardNine");
+      hintX = cardGrid.col3x;
+      hintY = cardGrid.row3y;
+      break;
+    case 10:
+      console.log("cardTen");
+      hintX = cardGrid.col4x;
+      hintY = cardGrid.row1y;
+      break;
+    case 11:
+      console.log("cardEleven");
+      hintX = cardGrid.col4x;
+      hintY = cardGrid.row2y;
+      break;
+    case 12:
+      console.log("cardTwelve");
+      hintX = cardGrid.col4x;
+      hintY = cardGrid.row3y;
+      break;
+    }
+  
+  var HCTX = document.getElementById("ctx").getContext("2d");
+  
+  HCTX.beginPath();
+  HCTX.clearRect(hintX, hintY, cardGrid.cardWidth, cardGrid.cardLength);
+  console.log(hintX + " " + hintY);
+  HCTX.lineWidth=6;
+  HCTX.strokeStyle="gold";
+  HCTX.strokeRect(hintX, hintY, cardGrid.cardWidth, cardGrid.cardLength);
+  HCTX.font="14px Arial";
+  HCTX.stroke();
+  HCTX.closePath();
+  
+  
+};
+
+clearSelectionButton = function (x,y) {
+  if (displayed.clearSubmit === true && gameControls.gamePaused === false) {
+    if ((x >= uiElements.clearSelectionButtonX - uiElements.pad && x <= uiElements.clearSelectionButtonX + uiElements.clearSelectionButtonW + (uiElements.pad * 2)) && (y >= uiElements.clearSelectionButtonY - uiElements.pad && y <= uiElements.clearSelectionButtonY + uiElements.clearSelectionButtonL + (uiElements.pad * 2))) {
+      console.log("clearSelectionButton");
+      clearCardsSFX.play();
+      clearSelections();
+      refreshScreen();
+    }
+  }
+};
+
+clearSelections = function () {
+	for (let i=1; i<13; i++){
+    let clearSelections = "card" + (i);
+    selected[clearSelections] = false;
+    selected.full = 0;
+  };
+};
+
+removeCards = function () {
+	var cardsToRemove = [];
+  let j = 0;
+  for(let i = 1; i < 13; i++) {
+    let count = "card" + i;
+    if (hint[count] === true) {
+      cardsToRemove[j] = playSurface[i-1];
+      j++;
+    }
+  }
+  console.log("Times up removing cards");
+
+	isMatch(cardsToRemove);
+	
+}
+
+//What image should I use?
+// this checks the card's data and loads the right image based on that data  
+displayGraphic = function (playSurface, i) {
+  var cardImage = "";
+  
+  if ( playSurface[i].color === "red" && playSurface[i].symbol === "diamond" && playSurface[i].shading === "solid") {
+  cardImage = "static/images/RedDiamondSolid.jpg";
+  return cardImage; 
+  } else if ( playSurface[i].color === "red" && playSurface[i].symbol === "diamond" && playSurface[i].shading === "striped") {
+    cardImage = "static/images/RedDiamondStriped.jpg";
+    return cardImage; 
+  } else if ( playSurface[i].color === "red" && playSurface[i].symbol === "diamond" && playSurface[i].shading === "open") {
+    cardImage = "static/images/RedDiamondOpen.jpg";
+    return cardImage; 
+  } else if ( playSurface[i].color === "red" && playSurface[i].symbol === "squiggle" && playSurface[i].shading === "solid") {
+    cardImage = "static/images/RedSquiggleSolid.jpg";
+    return cardImage; 
+  } else if ( playSurface[i].color === "red" && playSurface[i].symbol === "squiggle" && playSurface[i].shading === "striped") {
+    cardImage = "static/images/RedSquiggleStriped.jpg";
+    return cardImage; 
+  } else if ( playSurface[i].color === "red" && playSurface[i].symbol === "squiggle" && playSurface[i].shading === "open") {
+    cardImage = "static/images/RedSquiggleOpen.jpg";
+    return cardImage; 
+  } else if ( playSurface[i].color === "red" && playSurface[i].symbol === "oval" && playSurface[i].shading === "solid") {
+    cardImage = "static/images/RedOvalSolid.jpg";
+    return cardImage; 
+  } else if ( playSurface[i].color === "red" && playSurface[i].symbol === "oval" && playSurface[i].shading === "striped") {
+    cardImage = "static/images/RedOvalStriped.jpg";
+    return cardImage; 
+  } else if ( playSurface[i].color === "red" && playSurface[i].symbol === "oval" && playSurface[i].shading === "open") {
+    cardImage = "static/images/RedOvalOpen.jpg";
+    return cardImage; 
+  } else if ( playSurface[i].color === "green" && playSurface[i].symbol === "diamond" && playSurface[i].shading === "solid") {
+    cardImage = "static/images/GreenDiamondSolid.jpg";
+    return cardImage; 
+  } else if ( playSurface[i].color === "green" && playSurface[i].symbol === "diamond" && playSurface[i].shading === "striped") {
+    cardImage = "static/images/GreenDiamondStriped.jpg";
+    return cardImage; 
+  } else if ( playSurface[i].color === "green" && playSurface[i].symbol === "diamond" && playSurface[i].shading === "open") {
+    cardImage = "static/images/GreenDiamondOpen.jpg";
+    return cardImage; 
+  } else if ( playSurface[i].color === "green" && playSurface[i].symbol === "squiggle" && playSurface[i].shading === "solid") {
+    cardImage = "static/images/GreenSquiggleSolid.jpg";
+    return cardImage; 
+  } else if ( playSurface[i].color === "green" && playSurface[i].symbol === "squiggle" && playSurface[i].shading === "striped") {
+    cardImage = "static/images/GreenSquiggleStriped.jpg";
+    return cardImage; 
+  } else if ( playSurface[i].color === "green" && playSurface[i].symbol === "squiggle" && playSurface[i].shading === "open") {
+    cardImage = "static/images/GreenSquiggleOpen.jpg";
+    return cardImage; 
+  } else if ( playSurface[i].color === "green" && playSurface[i].symbol === "oval" && playSurface[i].shading === "solid") {
+    cardImage = "static/images/GreenOvalSolid.jpg";
+    return cardImage; 
+  } else if ( playSurface[i].color === "green" && playSurface[i].symbol === "oval" && playSurface[i].shading === "striped") {
+    cardImage = "static/images/GreenOvalStriped.jpg";
+    return cardImage; 
+  } else if ( playSurface[i].color === "green" && playSurface[i].symbol === "oval" && playSurface[i].shading === "open") {
+    cardImage = "static/images/GreenOvalOpen.jpg";
+    return cardImage; 
+  } else if ( playSurface[i].color === "purple" && playSurface[i].symbol === "diamond" && playSurface[i].shading === "solid") {
+    cardImage = "static/images/PurpleDiamondSolid.jpg";
+    return cardImage; 
+  } else if ( playSurface[i].color === "purple" && playSurface[i].symbol === "diamond" && playSurface[i].shading === "striped") {
+    cardImage = "static/images/PurpleDiamondStriped.jpg";
+    return cardImage; 
+  } else if ( playSurface[i].color === "purple" && playSurface[i].symbol === "diamond" && playSurface[i].shading === "open") {
+    cardImage = "static/images/PurpleDiamondOpen.jpg";
+    return cardImage; 
+  } else if ( playSurface[i].color === "purple" && playSurface[i].symbol === "squiggle" && playSurface[i].shading === "solid") {
+    cardImage = "static/images/PurpleSquiggleSolid.jpg";
+    return cardImage; 
+  } else if ( playSurface[i].color === "purple" && playSurface[i].symbol === "squiggle" && playSurface[i].shading === "striped") {
+    cardImage = "static/images/PurpleSquiggleStriped.jpg";
+    return cardImage; 
+  } else if ( playSurface[i].color === "purple" && playSurface[i].symbol === "squiggle" && playSurface[i].shading === "open") {
+    cardImage = "static/images/PurpleSquiggleOpen.jpg";
+    return cardImage; 
+  } else if ( playSurface[i].color === "purple" && playSurface[i].symbol === "oval" && playSurface[i].shading === "solid") {
+    cardImage = "static/images/PurpleOvalSolid.jpg";
+    return cardImage; 
+  } else if ( playSurface[i].color === "purple" && playSurface[i].symbol === "oval" && playSurface[i].shading === "striped") {
+    cardImage = "static/images/PurpleOvalStriped.jpg";
+    return cardImage; 
+  } else if ( playSurface[i].color === "purple" && playSurface[i].symbol === "oval" && playSurface[i].shading === "open") {
+    cardImage = "static/images/PurpleOvalOpen.jpg";
+    return cardImage; 
+  };
+};
+
+//Determining which cards are selected.
+whichCards = function(x,y,cardW,cardL,full){
+  
+  if (((x >= cardGrid.col1x && x <= cardGrid.col1x + cardW) && (y >= cardGrid.row1y && y <= cardGrid.row1y + cardL)) && displayed.card1 === true && gameControls.gamePaused === false) {
+    console.log("card1");
+    if (selected.card1 === false && selected.full < 3) {
+      selected.card1 = true;
+      selected.full = selected.full + 1;
+      selectCardSFX.play();
+    } else if (selected.card1 === true){
+        selected.card1 = false;
+        selected.full = selected.full - 1;
+        deselectCardSFX.play();
+    } else { 
+    		selectCardFullSFX.play();
+    }
+  } else if (((x >= cardGrid.col1x && x <= cardGrid.col1x + cardW) && (y >= cardGrid.row2y && y <= cardGrid.row2y + cardL)) && displayed.card2 === true && gameControls.gamePaused === false) {
+      console.log("card2");
+      if (selected.card2 === false && selected.full < 3) {
+        selected.card2 = true;
+        selected.full = selected.full + 1;
+        selectCardSFX.play();
+      } else if (selected.card2 === true) {
+          selected.card2 = false;
+          selected.full = selected.full - 1;
+          deselectCardSFX.play();
+	    } else { 
+    		selectCardFullSFX.play();
+  	  }
+  } else if (((x >= cardGrid.col1x && x <= cardGrid.col1x + cardW) && (y >= cardGrid.row3y && y <= cardGrid.row3y + cardL)) && displayed.card3 === true && gameControls.gamePaused === false) {
+      console.log("card3");
+      if (selected.card3 === false && selected.full < 3) {
+        selected.card3 = true;
+        selected.full = selected.full + 1;
+        selectCardSFX.play();
+      } else if (selected.card3 === true) {
+          selected.card3 = false;
+          selected.full = selected.full - 1;
+          deselectCardSFX.play();
+     } else { 
+    		selectCardFullSFX.play();
+     }
+  } else if (((x >= cardGrid.col2x && x <= cardGrid.col2x + cardW) && (y >= cardGrid.row1y && y <= cardGrid.row1y + cardL)) && displayed.card4 === true && gameControls.gamePaused === false) {
+      console.log("card4");
+      if (selected.card4 === false && selected.full < 3) {
+        selected.card4 = true;
+        selected.full = selected.full + 1;
+        selectCardSFX.play();
+      } else if (selected.card4 === true) {
+          selected.card4 = false;
+          selected.full = selected.full - 1;
+          deselectCardSFX.play();
+     } else { 
+    		selectCardFullSFX.play();
+     }
+  } else if (((x >= cardGrid.col2x && x <= cardGrid.col2x + cardW) && (y >= cardGrid.row2y && y <= cardGrid.row2y + cardL)) && displayed.card5 === true && gameControls.gamePaused === false) {
+      console.log("card5");
+      if (selected.card5 === false && selected.full < 3) {
+        selected.card5 = true;
+        selected.full = selected.full + 1;
+        selectCardSFX.play();
+      } else if (selected.card5 === true) {
+          selected.card5 = false;
+          selected.full = selected.full - 1;
+          deselectCardSFX.play();
+      } else { 
+    		selectCardFullSFX.play();
+	    }
+  } else if (((x >= cardGrid.col2x && x <= cardGrid.col2x + cardW) && (y >= cardGrid.row3y && y <= cardGrid.row3y + cardL)) && displayed.card6 === true && gameControls.gamePaused === false) {
+      console.log("card6");
+      if (selected.card6 === false && selected.full < 3) {
+        selected.card6 = true;
+        selected.full = selected.full + 1;
+        selectCardSFX.play();
+      } else if (selected.card6 === true) {
+          selected.card6 = false;
+          selected.full = selected.full - 1;
+          deselectCardSFX.play();
+	    } else { 
+    		selectCardFullSFX.play();
+  	  }
+  } else if (((x >= cardGrid.col3x && x <= cardGrid.col3x + cardW) && (y >= cardGrid.row1y && y <= cardGrid.row1y + cardL)) && displayed.card7 === true && gameControls.gamePaused === false) {
+      console.log("card7");
+      if (selected.card7 === false && selected.full < 3) {
+        selected.card7 = true;
+        selected.full = selected.full + 1;
+        selectCardSFX.play();
+      } else if (selected.card7 === true) {
+          selected.card7 = false;
+          selected.full = selected.full - 1;
+          deselectCardSFX.play();
+	    } else { 
+    		selectCardFullSFX.play();
+  	  }
+  } else if (((x >= cardGrid.col3x && x <= cardGrid.col3x + cardW) && (y >= cardGrid.row2y && y <= cardGrid.row2y + cardL)) && displayed.card8 === true && gameControls.gamePaused === false) {
+      console.log("card8");
+      if (selected.card8 === false && selected.full < 3) {
+        selected.card8 = true;
+        selected.full = selected.full + 1;
+        selectCardSFX.play();
+      } else if (selected.card8 === true) {
+          selected.card8 = false;
+          selected.full = selected.full - 1;
+          deselectCardSFX.play();
+	    } else { 
+    		selectCardFullSFX.play();
+  	  }
+  } else if (((x >= cardGrid.col3x && x <= cardGrid.col3x + cardW) && (y >= cardGrid.row3y && y <= cardGrid.row3y + cardL)) && displayed.card9 === true && gameControls.gamePaused === false) {
+      console.log("card9");
+      if (selected.card9 === false && selected.full < 3) {
+        selected.card9 = true;
+        selected.full = selected.full + 1;
+        selectCardSFX.play();
+      } else if (selected.card9 === true) {
+          selected.card9 = false;
+          selected.full = selected.full - 1;
+          deselectCardSFX.play();
+	    } else { 
+    		selectCardFullSFX.play();
+  	  }
+  } else if (((x >= cardGrid.col4x && x <= cardGrid.col4x + cardW) && (y >= cardGrid.row1y && y <= cardGrid.row1y + cardL)) && displayed.card10 === true && gameControls.gamePaused === false) {
+      console.log("card10");
+      if (selected.card10 === false && selected.full < 3) {
+        selected.card10 = true;
+        selected.full = selected.full + 1;
+        selectCardSFX.play();
+      } else if (selected.card10 === true) {
+          selected.card10 = false;
+          selected.full = selected.full - 1;
+          deselectCardSFX.play();
+	    } else { 
+    		selectCardFullSFX.play();
+  	  }
+  } else if (((x >= cardGrid.col4x && x <= cardGrid.col4x + cardW) && (y >= cardGrid.row2y && y <= cardGrid.row2y + cardL)) && displayed.card11 === true && gameControls.gamePaused === false)  {
+      console.log("card11");
+      if (selected.card11 === false && selected.full < 3) {
+        selected.card11 = true;
+        selected.full = selected.full + 1;
+        selectCardSFX.play();
+      } else if (selected.card11 === true) {
+          selected.card11 = false;
+          selected.full = selected.full - 1;
+          deselectCardSFX.play();
+	    } else { 
+    		selectCardFullSFX.play();
+  	  }
+  } else if (((x >= cardGrid.col4x && x <= cardGrid.col4x + cardW) && (y >= cardGrid.row3y && y <= cardGrid.row3y + cardL)) && displayed.card12 === true && gameControls.gamePaused === false)  {
+      console.log("card12");
+      if (selected.card12 === false && selected.full < 3) {
+        selected.card12 = true;
+        selected.full = selected.full + 1;
+        selectCardSFX.play();
+      } else if (selected.card12 === true) {
+          selected.card12 = false;
+          selected.full = selected.full - 1;
+          deselectCardSFX.play();
+	    } else { 
+    		selectCardFullSFX.play();
+  	  }
+  };
+};
+// hit box logic  Static values
+createCard = function (playSurface){
+  var ctx = document.getElementById("ctx").getContext("2d");
+ // Each of these functions is displaying on the screen the attributes of each card.    
+
+  drawCardFrame = function(whichCard,x,y,w,l){
+    let card = whichCard;
+    if (card === true) {
+      //set color to green  
+      ctx.beginPath();
+      ctx.strokeStyle="Green";
+      ctx.lineWidth=10;
+      ctx.strokeRect(x, y, w, l);
+      ctx.stroke();
+      ctx.closePath();
+    } else {
+        //set color to black
+        ctx.beginPath();
+        ctx.clearRect(x-5,y-5, w + 10, l+10);
+        ctx.lineWidth=2;
+        ctx.strokeStyle="#000000";
+        ctx.strokeRect(x, y, w, l);
+        ctx.stroke();
+        ctx.closePath();
+    };
+  };
+  
+  
+ //attempting to replace the if else statement in the cards for how many images ot display with this
+ //function.
+  numberOfShapes = function(shapes, images, x, y, cardWidth, cardLength,i) {
+    cardImage = images;
+    if (shapes === 1) {
+      cardImage.onload = function() {  
+        clearCard(x,y,cardWidth, cardLength);
+        ctx.drawImage(images, x + cardWidth/2 - cardGrid.padx, y + cardGrid.pos3 - cardGrid.padx);
+      };
+    images.src = displayGraphic(playSurface,i);
+    } else if (shapes === 2) {
+      cardImage.onload = function() {  
+        clearCard(x,y,cardWidth, cardLength);
+        ctx.drawImage(images, x + cardWidth/2 - cardGrid.padx, y + cardGrid.pos2 - cardGrid.padx);
+        ctx.drawImage(images, x + cardWidth/2 - cardGrid.padx, y + cardGrid.pos4 - cardGrid.padx);
+      };
+      images.src = displayGraphic(playSurface,i);
+    } else {
+      cardImage.onload = function() {  
+        clearCard(x,y,cardWidth, cardLength);
+        ctx.drawImage(images, x + cardWidth/2 - cardGrid.padx, y + cardGrid.pos1 - cardGrid.padx);
+        ctx.drawImage(images, x + cardWidth/2 - cardGrid.padx, y + cardGrid.pos3 - cardGrid.padx);
+        ctx.drawImage(images, x + cardWidth/2 - cardGrid.padx, y + cardGrid.pos5 - cardGrid.padx);
+      };  
+      images.src = displayGraphic(playSurface,i);
+    };
+  };
+    
+    
+  clearCard = function (x,y,w,h) {
+    ctx.clearRect(x+5,y+5,w-8,h-8);
+    ctx.stroke();
+  };    
+    
+// each of these cardX functions has 2 main parts
+// 1. draw the card frame based on whether or not the card is selected or not.  
+// 2. draw the correct images for the card data, such as two red filled ovals or one red open diamond   
+  cardOne = function() {
+    if (displayed.card1 === true) { 
+      drawCardFrame(selected.card1, cardGrid.col1x, cardGrid.row1y, cardGrid.cardWidth, cardGrid.cardLength);
+      let cardImage1 = new Image();
+      //debug
+      //console.log("cardone");
+      //for (let key in playSurface[0]) {console.log("cardOne -> " + key + ":" + playSurface[0][key]);};
+      //console.log("quantity:" + playSurface[0].quantity); 
+      numberOfShapes(playSurface[0].quantity, cardImage1, cardGrid.col1x, cardGrid.row1y, cardGrid.cardWidth, cardGrid.cardLength, 0);
+    }
+  };
+
+  cardTwo = function() {
+    if (displayed.card2 === true) { 
+      drawCardFrame(selected.card2, cardGrid.col1x, cardGrid.row2y, cardGrid.cardWidth, cardGrid.cardLength);
+      let cardImage2 = new Image();
+    numberOfShapes(playSurface[1].quantity, cardImage2, cardGrid.col1x, cardGrid.row2y, cardGrid.cardWidth, cardGrid.cardLength, 1);
+    } 
+  };
+  
+  cardThree = function() {
+    if (displayed.card3 === true) { 
+      drawCardFrame(selected.card3, cardGrid.col1x, cardGrid.row3y, cardGrid.cardWidth, cardGrid.cardLength);
+      let cardImage3 = new Image();
+      numberOfShapes(playSurface[2].quantity, cardImage3, cardGrid.col1x, cardGrid.row3y, cardGrid.cardWidth, cardGrid.cardLength, 2);
+    }
+  };
+    
+  cardFour = function() {
+    if (displayed.card4 === true) { 
+      drawCardFrame(selected.card4, cardGrid.col2x, cardGrid.row1y, cardGrid.cardWidth, cardGrid.cardLength);
+      let cardImage4 = new Image();
+      numberOfShapes(playSurface[3].quantity, cardImage4, cardGrid.col2x, cardGrid.row1y, cardGrid.cardWidth, cardGrid.cardLength, 3);
+    }     
+  };
+  
+  cardFive = function() {
+    if (displayed.card5 === true) { 
+      drawCardFrame(selected.card5, cardGrid.col2x, cardGrid.row2y, cardGrid.cardWidth, cardGrid.cardLength);
+      let cardImage5 = new Image();
+      numberOfShapes(playSurface[4].quantity, cardImage5, cardGrid.col2x, cardGrid.row2y, cardGrid.cardWidth, cardGrid.cardLength, 4);
+    }
+  };
+
+  cardSix = function() {
+    if (displayed.card6 === true) { 
+      drawCardFrame(selected.card6, cardGrid.col2x, cardGrid.row3y, cardGrid.cardWidth, cardGrid.cardLength);
+      let cardImage6 = new Image();
+      numberOfShapes(playSurface[5].quantity, cardImage6, cardGrid.col2x, cardGrid.row3y, cardGrid.cardWidth, cardGrid.cardLength, 5);
+    }
+  };
+
+  cardSeven = function() {
+    if (displayed.card7 === true) { 
+      drawCardFrame(selected.card7, cardGrid.col3x, cardGrid.row1y, cardGrid.cardWidth, cardGrid.cardLength);
+      let cardImage7 = new Image();
+      numberOfShapes(playSurface[6].quantity, cardImage7, cardGrid.col3x, cardGrid.row1y, cardGrid.cardWidth, cardGrid.cardLength, 6);
+    }
+  };
+    
+  cardEight = function() {
+    if (displayed.card8 === true) { 
+      drawCardFrame(selected.card8, cardGrid.col3x, cardGrid.row2y, cardGrid.cardWidth, cardGrid.cardLength);
+      let cardImage8 = new Image();
+      numberOfShapes(playSurface[7].quantity, cardImage8, cardGrid.col3x, cardGrid.row2y, cardGrid.cardWidth, cardGrid.cardLength, 7);
+    }
+  };
+    
+  cardNine = function() {
+    if (displayed.card9 === true) { 
+      drawCardFrame(selected.card9, cardGrid.col3x, cardGrid.row3y, cardGrid.cardWidth, cardGrid.cardLength);
+      let cardImage9 = new Image();
+      numberOfShapes(playSurface[8].quantity, cardImage9, cardGrid.col3x, cardGrid.row3y, cardGrid.cardWidth, cardGrid.cardLength, 8);
+    }
+  };
+  
+  cardTen = function() {
+    if (displayed.card10 === true) { 
+      drawCardFrame(selected.card10, cardGrid.col4x, cardGrid.row1y, cardGrid.cardWidth, cardGrid.cardLength);
+      let cardImage10 = new Image();
+      numberOfShapes(playSurface[9].quantity, cardImage10, cardGrid.col4x, cardGrid.row1y, cardGrid.cardWidth, cardGrid.cardLength, 9);
+    }
+  };
+  
+  cardEleven = function() {
+    if (displayed.card11 === true) { 
+      drawCardFrame(selected.card11, cardGrid.col4x, cardGrid.row2y, cardGrid.cardWidth, cardGrid.cardLength);
+      let cardImage11 = new Image();
+      numberOfShapes(playSurface[10].quantity, cardImage11, cardGrid.col4x, cardGrid.row2y, cardGrid.cardWidth, cardGrid.cardLength, 10);
+    }
+  };
+      
+  cardTwelve = function() {
+    if (displayed.card12 === true) { 
+      drawCardFrame(selected.card12, cardGrid.col4x, cardGrid.row3y, cardGrid.cardWidth, cardGrid.cardLength);
+      let cardImage12 = new Image();
+      numberOfShapes(playSurface[11].quantity, cardImage12, cardGrid.col4x, cardGrid.row3y, cardGrid.cardWidth, cardGrid.cardLength, 11);
+    }
+  };  
+  
+
+};  // end of create card function
+
+drawSfxButtons = function () {
+  var SFXBUTTONS = document.getElementById("ctx").getContext("2d");	
+  if (displayed.sfxButtons === true) {
+    SFXBUTTONS.beginPath();
+  	SFXBUTTONS.font="24px Arial";
+  	SFXBUTTONS.fillText("SOUND EFFECTS", uiElements.sfxButtonHeaderTextX, uiElements.sfxButtonHeaderTextY);
+  	SFXBUTTONS.stroke();
+  	SFXBUTTONS.closePath();
+  	  
+    if (gameControls.sfxOn === true) {
+      //On Button
+      SFXBUTTONS.beginPath();
+  	  SFXBUTTONS.strokeStyle="Green";
+  	  SFXBUTTONS.lineWidth=4;
+  	  SFXBUTTONS.rect(uiElements.sfxButtonOnX, uiElements.sfxButtonOnY, uiElements.sfxButtonOnW, uiElements.sfxButtonOnL);
+  	  SFXBUTTONS.font="24px Arial";
+  	  SFXBUTTONS.fillText("ON", uiElements.sfxButtonOnTextX, uiElements.sfxButtonOnTextY);
+  	  SFXBUTTONS.stroke();
+  	  SFXBUTTONS.closePath();
+  	  // Off button
+  	  SFXBUTTONS.beginPath();
+  	  SFXBUTTONS.strokeStyle="Red";
+  	  SFXBUTTONS.lineWidth=4;
+  	  SFXBUTTONS.rect(uiElements.sfxButtonOffX, uiElements.sfxButtonOffY, uiElements.sfxButtonOffW, uiElements.sfxButtonOffL);
+  	  SFXBUTTONS.font="24px Arial";
+  	  SFXBUTTONS.fillText("OFF", uiElements.sfxButtonOffTextX, uiElements.sfxButtonOffTextY);
+  	  SFXBUTTONS.stroke();
+  	  SFXBUTTONS.closePath();        
+    } else {
+        //On Button
+        SFXBUTTONS.beginPath();
+  	    SFXBUTTONS.strokeStyle="Red";
+  	    SFXBUTTONS.lineWidth=4;
+  	    SFXBUTTONS.rect(uiElements.sfxButtonOnX, uiElements.sfxButtonOnY, uiElements.sfxButtonOnW, uiElements.sfxButtonOnL);
+  	    SFXBUTTONS.font="24px Arial";
+  	    SFXBUTTONS.fillText("ON", uiElements.sfxButtonOnTextX, uiElements.sfxButtonOnTextY);
+  	    SFXBUTTONS.stroke();
+  	    SFXBUTTONS.closePath();
+  	    // Off button
+  	    SFXBUTTONS.beginPath();
+  	    SFXBUTTONS.strokeStyle="Green";
+  	    SFXBUTTONS.lineWidth=4;
+  	    SFXBUTTONS.rect(uiElements.sfxButtonOffX, uiElements.sfxButtonOffY, uiElements.sfxButtonOffW, uiElements.sfxButtonOffL);
+  	    SFXBUTTONS.font="24px Arial";
+  	    SFXBUTTONS.fillText("OFF", uiElements.sfxButtonOffTextX, uiElements.sfxButtonOffTextY);
+  	    SFXBUTTONS.stroke();
+  	    SFXBUTTONS.closePath();  
+        
+    }      
+  }  
+}
+    
+refreshScreen = function () { 
+
+  drawDeck();
+  cardOne();
+  cardTwo();  
+  cardThree();  
+  cardFour();
+  cardFive();
+  cardSix();
+  cardSeven();
+  cardEight();
+  cardNine();
+  cardTen();
+  cardEleven();
+  cardTwelve();
+  drawBanner();
+  if (gameControls.gameOver === false) {
+  	if (gameControls.paused === false){
+  		flashSubmitButton();
+  	}
+  }
+};  
+// Call our Functions
+//Create the deck
+var masterDeck = createDeck();
+//Shuffle the deck
+var playDeck = shuffleDeck(masterDeck);
+// Deal the cards
+var playSurface = createTable(playDeck);
+
+// Make sure we have at least one set to start with
+playSurface = startGame(playSurface, playDeck);
+// Creating game UI Elements
+createGameUI();
+createCard(playSurface);
+refreshScreen();
+updateTimer();
+// For debug purposes
+{
+//  Checking that the playdeck is a shuffled version of the master deck
+
+//var m = 0;
+
+//for (let i = 0; i < playDeck.length; i++) {
+//  console.log((m+1) + " " + playDeck[m].symbol + ", "+ playDeck[m].color + ", "+ playDeck[m].shading + ", "+ playDeck[m].quantity);
+//  console.log((m+1) + " " + masterDeck[m]);
+//  m++;
+//}
+
+// Checking that the "dealt" cards are correct
+//var n = 0; 
+//for (let i = 0; i < playSurface.length; i++) {
+    //        console.log((n+1) + " " + playSurface[n].symbol + ", "+ playSurface[n].color + ", "+ playSurface[n].shading + ", "+ playSurface[n].quantity);
+  //        n++;
+//      }
+//
+}
+
+// Tutorial section
+
+
+</script>
+	</body>
+</html>
