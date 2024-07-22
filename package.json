@@ -1,0 +1,14 @@
+{
+  "name": "javascriptset",
+  "version": "1.0.0",
+  "description": "The goal of this project is to create a version of set modified for computer play.  The following additions to the regular game have been made:",
+  "main": "cardImage.js",
+  "scripts": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.45.2",
+    "@types/node": "^20.14.11"
+  }
+}

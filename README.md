@@ -14,3 +14,10 @@ The goal of this project is to create a version of set modified for computer pla
 6. During the last 5 seconds an alarm klaxon sounds
 
    Future work would be to add additional settings
+
+## Docker Instructions
+
+```
+docker build -t test:latest .
+docker run -p 127.0.0.1:8000:80 test:latest
+```
